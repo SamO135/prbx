@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "prbx-project"
+version = "0.1.0"
+description = ""
+authors = ["Samuel Ogg <56794292+SamO135@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.5.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
