@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from player import Player
-from settings import Token
-from card import Card
+from prbx_project.player import Player
+from prbx_project.settings import Token
+from prbx_project.card import Card
 
 class Board(BaseModel):
     available_tokens: dict[Token, int] = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 4, 

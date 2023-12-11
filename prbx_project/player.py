@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from card import Card
-from settings import Token
+from prbx_project.card import Card
+from prbx_project.settings import Token
 from itertools import combinations
 import random
 import copy
@@ -9,17 +9,21 @@ class Player(BaseModel):
     hand: list[Card] = None
     reserved: list[Card] = None
     points: int = 0
-    tokens: list[dict[Token, int]] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
-    bonuses: list[dict[Token, int]] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    tokens: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    bonuses: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
 
 
     def get_buyable_cards(self, cards: list[Card]):
-        cards = []
+        buyable_cards = []
         for card in cards:
-            for token, price in card.price.items():
-                if self.tokens[token] + self.bonuses[token] > price:
-                    cards.append(card)
-        return cards
+            buyable = True
+            for card_token, token_amount in card.price.items():
+                if self.tokens[card_token] + self.bonuses[card_token] < token_amount:
+                    buyable = False
+                    break
+            if buyable:
+                buyable_cards.append(card)
+        return buyable_cards
     
     def get_token_collection_moves(self, available_tokens: dict[Token, int]) -> list[dict[Token, int]]:
         available_tokens_copy = copy.deepcopy(available_tokens)

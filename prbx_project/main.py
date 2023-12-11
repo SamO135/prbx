@@ -1,6 +1,6 @@
-from game import Game
-from player import Player
-from board import Board
+from prbx_project.game import Game
+from prbx_project.player import Player
+from prbx_project.board import Board
 
 if __name__ == "__main__":
     player1 = Player()

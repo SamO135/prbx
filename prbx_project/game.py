@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from board import Board
-from player import Player
-from settings import Token
+from prbx_project.board import Board
+from prbx_project.player import Player
+from prbx_project.settings import Token
 
 class Game(BaseModel):
     board: Board
