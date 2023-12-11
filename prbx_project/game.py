@@ -40,14 +40,14 @@ class Game(BaseModel):
                 winner = player
         return winner
     
-    def collect_tokens(self, tokens: dict[Token, int]):
-        """Updates the player and board when a player is collecting tokens.
+    # def collect_tokens(self, tokens: dict[Token, int]):
+    #     """Updates the player and board when a player is collecting tokens.
         
-        Args:
-            tokens (dict[Token, int]): A dictionary of the tokens the player will collect.
-        """
-        self.board.remove_tokens(tokens)
-        self.current_player.collect_tokens(tokens)
+    #     Args:
+    #         tokens (dict[Token, int]): A dictionary of the tokens the player will collect.
+    #     """
+    #     self.board.remove_tokens(tokens)
+    #     self.current_player.collect_tokens(tokens)
 
 
 

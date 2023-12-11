@@ -1,13 +1,14 @@
 from pydantic import BaseModel
 from prbx_project.card import Card
 from prbx_project.settings import Token
-from itertools import combinations
+from itertools import combinations, product
 import random
 import copy
 
 class Player(BaseModel):
     """A class representing a player."""
 
+    name: str
     hand: list[Card] = None
     reserved: list[Card] = None
     points: int = 0
@@ -69,8 +70,8 @@ class Player(BaseModel):
         reservable_cards = available_cards # + 3 face down cards
         collectable_tokens = self.get_token_collection_moves(available_tokens)
         possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
-        if possible_moves['buy_card'] == []:
-            possible_moves.pop('buy_card')
+        # remove move_type if there are no possible moves for that type
+        possible_moves = {move_type: moves for move_type, moves in possible_moves.items() if moves != []}
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
@@ -86,6 +87,7 @@ class Player(BaseModel):
         """
         possible_moves = self.get_possible_moves(available_tokens, available_cards)
         move_type = random.choice(list(possible_moves.keys()))
+        print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
     
@@ -102,4 +104,31 @@ class Player(BaseModel):
         for token, amount in tokens.items():
             if token in self.tokens:
                 self.tokens[token] += amount
+
+        # while(len(self.tokens) > 10):
+        #     token = random.choice([token for token, amount in tokens.items() if amount > 0]) # This needs to be changed somehow when the player is not picking random moves
+        #     self.return_token(token)
+        return self.tokens
+    
+    def get_possible_tokens_to_return(self) -> list[dict[Token, int]]:
+        """Get all possible combinations of tokens the player can return when over 10 tokens.
+        
+        Return:
+            list[dict[Token, int]]: All combinations as a list of dictionaries
+        """
+        num_to_return = sum([amount for amount in self.tokens.values()]) - 10
+        if num_to_return <= 0:
+            return []
+        tokens_flat_list = [token for token, amount in self.tokens.items() for _ in range(amount)]
+        valid_combinations_tuples = set(list(combinations(tokens_flat_list, r=num_to_return)))
+        valid_combinations = [
+            {token: combo.count(token) for token in combo}
+            for combo in valid_combinations_tuples
+        ]
+        return valid_combinations
+        
+
+    def return_tokens(self, tokens: dict[Token, int]):
+        for token, amount in tokens.items():
+            self.tokens[token] -= amount
         return self.tokens

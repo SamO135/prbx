@@ -24,3 +24,8 @@ class Board(BaseModel):
                 self.available_tokens[token] -= amount
         return self.available_tokens
     
+    def recieve_tokens(self, tokens: dict[Token, int]):
+        for token, amount in tokens.items():
+            self.available_tokens[token] += amount
+        return self.available_tokens
+    
