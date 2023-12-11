@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     game = Game(board=board, players=[player1, player2])
 
-    while (not game.isOver()):
+    while (not game.is_over()):
         player_move = game.current_player.select_move(game.board.available_tokens, game.board.available_cards)
         if player_move[1] == "collect_tokens":
             break

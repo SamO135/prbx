@@ -17,7 +17,7 @@ class Game(BaseModel):
         self.current_player = self.players[0]
 
 
-    def isOver(self):
+    def is_over(self):
         """Checks if a player has reached the winning score.
         
         Return:
@@ -29,7 +29,7 @@ class Game(BaseModel):
         return False
     
     # Still need to implement the logic for the case where 2 people finish on the same turn and have the same number of points
-    def getWinner(self):
+    def get_winner(self):
         """Gets the winner of the game.
         
         Return:
