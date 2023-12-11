@@ -10,7 +10,7 @@ class Board(BaseModel):
                                           Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
     available_cards: list[Card] = [Card.new_card() for i in range(12)]
 
-    def removeTokens(self, tokens: dict[Token, int]):
+    def remove_tokens(self, tokens: dict[Token, int]):
         """Removes tokens to the board.
         
         Args:

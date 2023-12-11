@@ -90,7 +90,7 @@ class Player(BaseModel):
         return (move, move_type)
     
     # Still needs to cover the case where the player has more than 10 tokens after picking some up
-    def collectTokens(self, tokens: dict[Token, int]):
+    def collect_tokens(self, tokens: dict[Token, int]):
         """Adds tokens to the player's collection.
         
         Args:

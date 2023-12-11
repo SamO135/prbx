@@ -46,8 +46,8 @@ class Game(BaseModel):
         Args:
             tokens (dict[Token, int]): A dictionary of the tokens the player will collect.
         """
-        self.board.removeTokens(tokens)
-        self.current_player.collectTokens(tokens)
+        self.board.remove_tokens(tokens)
+        self.current_player.collect_tokens(tokens)
 
 
 
