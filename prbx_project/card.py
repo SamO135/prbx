@@ -3,6 +3,8 @@ from prbx_project.settings import Token
 import random
 
 class Card(BaseModel):
+    """A class representing a development card."""
+
     id: int
     points: int
     bonus: Token
@@ -12,6 +14,11 @@ class Card(BaseModel):
 
     # Modify this so the generated price matches the card's tier.
     def create_price() -> dict[Token, int]:
+        """Create a random price for the card.
+        
+        Return:
+            dict[Token, int]: A dictionary containing the price of the card
+        """
         values = [random.randint(0, 3) for i in range(4)]
         tokens = [token for token in Token]
         tokens.remove(Token.YELLOW)
@@ -21,7 +28,12 @@ class Card(BaseModel):
         
 
     @classmethod
-    def new_card(self):
+    def new_card(cls):
+        """A factory method to create new cards.
+        
+        Return:
+            Card: A new card object
+        """
         id = random.randint(1, 1000)
         points = random.randint(0, 4)
         bonus = random.choice(list(Token))
