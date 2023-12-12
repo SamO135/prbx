@@ -51,7 +51,6 @@ def test_get_possible_moves(test_card_set, test_player_tokens):
     assert possible_moves == possible_moves_answer
 
 
-
 # how do you test randomness?
 def test_select_random_move():
     pass
@@ -95,6 +94,27 @@ def test_get_possible_tokens_to_return():
 
 
 def test_return_tokens():
-    p1 = Player(name="test", tokens={Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 3, Token.BLACK: 1, Token.YELLOW: 2})
-    p1.return_tokens(tokens={Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1})
-    assert p1.tokens == {Token.RED: 1, Token.BLUE: 2, Token.GREEN: 1, Token.WHITE: 3, Token.BLACK: 0, Token.YELLOW: 2}
+    p = Player(name="test", tokens={Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 3, Token.BLACK: 1, Token.YELLOW: 2})
+    p.return_tokens(tokens={Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1})
+    assert p.tokens == {Token.RED: 1, Token.BLUE: 2, Token.GREEN: 1, Token.WHITE: 3, Token.BLACK: 0, Token.YELLOW: 2}
+
+
+def test_reserve_card(test_card_set):
+    p = Player(name="test")
+    board = Board()
+    p.reserve_card(test_card_set[0], board.available_tokens)
+    assert p.reserved_cards == [test_card_set[0]]
+
+    with pytest.raises(ValueError):
+        p.reserve_card(test_card_set[1:], board.available_tokens)
+
+    p.reserve_card(test_card_set[1], board.available_tokens)
+    p.reserve_card(test_card_set[2], board.available_tokens)
+    assert p.reserved_cards == test_card_set[:3]
+
+    with pytest.raises(IndexError):
+        p.reserve_card(test_card_set[3], board.available_tokens)
+
+
+def test_buy_card():
+    pass

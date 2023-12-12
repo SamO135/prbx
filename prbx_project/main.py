@@ -16,27 +16,25 @@ if __name__ == "__main__":
         for current_player in game.players:
             # Select move
             player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards)
+            print(f"{current_player.name}: {player_move}")
 
             # Play move
             match player_move[1]:
                 case "buy_card":
-                    # current_player.buy_card(player_move[0])
-                    # game.board.replace_card(player_move[0])
-                    pass
+                    reserved = current_player.buy_card(player_move[0])
+                    if not reserved:
+                        game.board.replace_card(player_move[0])
                 case "reserve_card":
-                    # current_player.reserve_card(player_move[0])
-                    # game.board.replace_card(player_move[0])
-                    pass
+                    current_player.reserve_card(player_move[0], board.available_tokens)
+                    game.board.replace_card(player_move[0], reserved=True)
                 case "collect_tokens":
                     current_player.collect_tokens(player_move[0])
                     game.board.remove_tokens(player_move[0])
                     if len(current_player.tokens) > 10:
                         tokens_to_return = random.choice(current_player.get_possible_tokens_to_return())
-                        # print(f"returned: {tokens_to_return}")
                         current_player.return_tokens(tokens_to_return)
                         game.board.recieve_tokens(tokens_to_return)
-                    # print(f"{current_player.name}'s tokens: {current_player.tokens}")
-        # print()
+
 
     # Game has finished
     # winner = game.get_winner()

@@ -29,3 +29,17 @@ class Board(BaseModel):
             self.available_tokens[token] += amount
         return self.available_tokens
     
+    def replace_card(self, card: Card, reserved: bool = False) -> Card:
+        """Replace one of the available cards with a new random card of the same tier.
+        
+        Args:
+            card (Card): The card to be replaced
+            reserved (bool): True if the card is being reserved, False if the card is being purchased
+            
+        Return:
+            Card: The newly generated card
+        """
+        self.available_cards.remove(card)
+        self.available_cards += [Card.new_card()]
+        if reserved and self.available_tokens[Token.YELLOW] > 0:
+            self.remove_tokens(tokens={Token.YELLOW: 1})

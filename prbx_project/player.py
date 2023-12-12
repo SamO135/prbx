@@ -67,11 +67,12 @@ class Player(BaseModel):
             A dictionary of all the possible moves the player can make on their turn
         """
         buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
-        reservable_cards = available_cards # + 3 face down cards
+        reservable_cards = available_cards if len(self.reserved_cards) < 3 else [] # + 3 face down cards
         collectable_tokens = self.get_token_collection_moves(available_tokens)
         possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
         # remove move_type if there are no possible moves for that type
         possible_moves = {move_type: moves for move_type, moves in possible_moves.items() if moves != []}
+        # print(possible_moves["collect_tokens"])
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
@@ -127,7 +128,6 @@ class Player(BaseModel):
         ]
         return valid_combinations
         
-
     def return_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Remove tokens from the player's collection, this is used when the player has more than 10 tokens.
         
@@ -135,7 +135,53 @@ class Player(BaseModel):
             tokens (dict[Token, int]): A dictionary of the tokens to return
             
         Return:
-            dict[Token, int]: The player's tokens"""
+            dict[Token, int]: The player's tokens
+        """
         for token, amount in tokens.items():
             self.tokens[token] -= amount
         return self.tokens
+    
+    def reserve_card(self, card: Card, available_tokens: dict[Token, int]) -> list[Card]:
+        """Add a card to the players reserved cards list and give them a yellow token if one is available.
+        
+        Args:
+            card (Card): The card the player is reserving
+            available_tokens (dict[Token, int]): The available tokens on the board
+            
+        Return:
+            list[Card]: The player's list of reserved cards
+        """
+        if not isinstance(card, Card):
+            raise ValueError(f"Method expected {Card} but got {type(card)}")
+        if len(self.reserved_cards) >= 3:
+            raise IndexError(f"Player ({self.name}) already has 3 reserved cards")
+        
+        self.reserved_cards += [card]
+        if available_tokens[Token.YELLOW] > 0:
+            self.tokens[Token.YELLOW] += 1
+        return self.reserved_cards
+    
+    def buy_card(self, card: Card) -> bool:
+        """Add a card to the players hand.
+        
+        Args:
+            card (Card): The card the player is buying
+            
+        Return:
+            bool: True if card is reserved, False otherwise"""
+        if not isinstance(card, Card):
+            raise ValueError(f"Method expected {Card} but got {type(card)}")
+        self.hand += [card]
+
+        # check if the card is one of the reserved cards
+        reserved = False
+        if card in self.reserved_cards:
+            self.reserved_cards.remove(card)
+            reserved = True
+
+        # add prestige points
+        self.points += card.points
+
+        # add bonuses
+        self.bonuses[card.bonus] += 1
+        return reserved

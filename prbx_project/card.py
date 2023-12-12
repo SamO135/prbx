@@ -28,7 +28,7 @@ class Card(BaseModel):
         
 
     @classmethod
-    def new_card(cls):
+    def new_card(cls, tier=1):
         """A factory method to create new cards.
         
         Return:
