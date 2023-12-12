@@ -11,22 +11,7 @@ if __name__ == "__main__":
 
     game = Game(board=board, players=[player1, player2])
 
-    # while (not game.is_over()):
-    #     player_move = game.current_player.select_random_move(game.board.available_tokens, game.board.available_cards)
-    #     if player_move[1] == "collect_tokens":
-    #         break
-
-    # print(f"Game board: {game.board.available_tokens}")
-    # print()
-    # game.current_player.collect_tokens(player_move[0])
-    # game.board.remove_tokens(player_move[0])
-    # print(f"player move: {player_move}")
-    # print(f"board after: {game.board.available_tokens}")
-    # print(f"player after: {game.current_player.tokens}")
-
-
     # GENERAL GAMEPLAY LOOP
-
     for i in range(10):
         for current_player in game.players:
             # Select move
@@ -47,11 +32,11 @@ if __name__ == "__main__":
                     game.board.remove_tokens(player_move[0])
                     if len(current_player.tokens) > 10:
                         tokens_to_return = random.choice(current_player.get_possible_tokens_to_return())
-                        print(f"returned: {tokens_to_return}")
+                        # print(f"returned: {tokens_to_return}")
                         current_player.return_tokens(tokens_to_return)
                         game.board.recieve_tokens(tokens_to_return)
-                    print(f"{current_player.name}'s tokens: {current_player.tokens}")
-        print()
+                    # print(f"{current_player.name}'s tokens: {current_player.tokens}")
+        # print()
 
     # Game has finished
     # winner = game.get_winner()

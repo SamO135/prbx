@@ -9,14 +9,14 @@ class Player(BaseModel):
     """A class representing a player."""
 
     name: str
-    hand: list[Card] = None
-    reserved: list[Card] = None
+    hand: list[Card] = []
+    reserved_cards: list[Card] = []
     points: int = 0
     tokens: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
     bonuses: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
 
 
-    def get_buyable_cards(self, cards: list[Card]):
+    def get_buyable_cards(self, cards: list[Card]) -> list[Card]:
         """Checks which cards the player is able to buy.
     
         Args:
@@ -66,7 +66,7 @@ class Player(BaseModel):
         Return:
             A dictionary of all the possible moves the player can make on their turn
         """
-        buyable_cards = self.get_buyable_cards(available_cards) # + reserved cards
+        buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
         reservable_cards = available_cards # + 3 face down cards
         collectable_tokens = self.get_token_collection_moves(available_tokens)
         possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
@@ -87,12 +87,12 @@ class Player(BaseModel):
         """
         possible_moves = self.get_possible_moves(available_tokens, available_cards)
         move_type = random.choice(list(possible_moves.keys()))
-        print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
+        # print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
     
     # Still needs to cover the case where the player has more than 10 tokens after picking some up
-    def collect_tokens(self, tokens: dict[Token, int]):
+    def collect_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Adds tokens to the player's collection.
         
         Args:
@@ -111,7 +111,7 @@ class Player(BaseModel):
         return self.tokens
     
     def get_possible_tokens_to_return(self) -> list[dict[Token, int]]:
-        """Get all possible combinations of tokens the player can return when over 10 tokens.
+        """Get all possible combinations of tokens the player can return when over 10 tokens. This includes yellow tokens.
         
         Return:
             list[dict[Token, int]]: All combinations as a list of dictionaries
@@ -128,7 +128,14 @@ class Player(BaseModel):
         return valid_combinations
         
 
-    def return_tokens(self, tokens: dict[Token, int]):
+    def return_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
+        """Remove tokens from the player's collection, this is used when the player has more than 10 tokens.
+        
+        Args:
+            tokens (dict[Token, int]): A dictionary of the tokens to return
+            
+        Return:
+            dict[Token, int]: The player's tokens"""
         for token, amount in tokens.items():
             self.tokens[token] -= amount
         return self.tokens
