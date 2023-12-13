@@ -36,7 +36,9 @@ class Card(BaseModel):
         """
         id = random.randint(1, 1000)
         points = random.randint(0, 4)
-        bonus = random.choice(list(Token))
+        tokens = list(Token)
+        tokens.remove(Token.YELLOW)
+        bonus = random.choice(tokens)
         # Generate price
         price = Card.create_price()
         return Card(id = id, points=points, bonus=bonus, price=price, tier=1)
