@@ -1,5 +1,6 @@
+import random
 from pydantic import BaseModel
-from prbx_project.player import Player
+from prbx_project.all_cards import all_cards
 from prbx_project.settings import Token
 from prbx_project.card import Card
 
@@ -8,7 +9,7 @@ class Board(BaseModel):
 
     available_tokens: dict[Token, int] = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 4, 
                                           Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
-    available_cards: list[Card] = [Card.new_card() for i in range(12)]
+    available_cards: list[Card] = [random.choice(all_cards[0]) for _ in range(12)]
 
     def remove_tokens(self, tokens: dict[Token, int]):
         """Removes tokens to the board.
@@ -40,6 +41,6 @@ class Board(BaseModel):
             Card: The newly generated card
         """
         self.available_cards.remove(card)
-        self.available_cards += [Card.new_card()]
+        self.available_cards += [random.choice(all_cards[card.tier-1])]
         if reserved and self.available_tokens[Token.YELLOW] > 0:
             self.remove_tokens(tokens={Token.YELLOW: 1})

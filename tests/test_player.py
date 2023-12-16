@@ -116,5 +116,12 @@ def test_reserve_card(test_card_set):
         p.reserve_card(test_card_set[3], board.available_tokens)
 
 
+def test_calculate_real_price(test_card_set):
+    card = test_card_set[0]
+    p = Player(name="test", bonuses={Token.RED: 1, Token.BLUE: 2, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0})
+    real_price = p.calculate_real_price(card)
+    assert real_price == {Token.RED: 1, Token.GREEN: 2, Token.BLUE: 1, Token.WHITE: 0, Token.BLACK: 0}
+
+
 def test_buy_card():
     pass

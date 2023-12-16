@@ -87,7 +87,11 @@ class Player(BaseModel):
             A tuple of the move and the category of the move
         """
         possible_moves = self.get_possible_moves(available_tokens, available_cards)
-        move_type = random.choice(list(possible_moves.keys()))
+        try:
+            move_type = random.choice(list(possible_moves.keys()))
+        except IndexError as e:
+            print(available_tokens)
+            quit()
         # print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
@@ -139,6 +143,8 @@ class Player(BaseModel):
         """
         for token, amount in tokens.items():
             self.tokens[token] -= amount
+        if any(amount for amount in self.tokens.values()) < 0:
+            raise ValueError("Player cannot return more tokens than they own")
         return self.tokens
     
     def reserve_card(self, card: Card, available_tokens: dict[Token, int]) -> list[Card]:
@@ -160,6 +166,12 @@ class Player(BaseModel):
         if available_tokens[Token.YELLOW] > 0:
             self.tokens[Token.YELLOW] += 1
         return self.reserved_cards
+    
+    def calculate_real_price(self, card: Card) -> dict[Token, int]:
+        real_price = copy.deepcopy(card.price)
+        for token, price in card.price.items():
+            real_price[token] -= self.bonuses[token]
+        return real_price
     
     def buy_card(self, card: Card) -> bool:
         """Add a card to the players hand.
@@ -184,4 +196,7 @@ class Player(BaseModel):
 
         # add bonuses
         self.bonuses[card.bonus] += 1
+
+        # pay/return the tokens
+        self.return_tokens(self.calculate_real_price(card))
         return reserved

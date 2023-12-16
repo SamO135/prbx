@@ -34,7 +34,7 @@ class Game(BaseModel):
         
         Return:
             Player: The winning player"""
-        winner = player[0]
+        winner = self.players[0]
         for player in self.players:
             if player.points > winner.points:
                 winner = player
