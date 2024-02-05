@@ -16,12 +16,7 @@ if __name__ == "__main__":
     # GENERAL GAMEPLAY LOOP
     count = 0
     while (not game.is_over()):
-        print(f"turn {count}")
         for current_player in game.players:
-            # DEBUG
-            if count == 30:
-                pass
-
             # Select move
             player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards)
             # print(f"{current_player.name}: {player_move}")
@@ -31,7 +26,8 @@ if __name__ == "__main__":
                 case "buy_card":
                     card: Card = player_move[0]
                     reserved = current_player.buy_card(card)
-                    game.board.recieve_tokens(card.price)
+                    real_price = current_player.calculate_real_price(card)
+                    game.board.recieve_tokens(real_price)
                     if not reserved:
                         game.board.replace_card(card)
                 case "reserve_card":
@@ -50,8 +46,8 @@ if __name__ == "__main__":
 
 
     # Game has finished
-    # winner = game.get_winner()
-    # print(winner.name)
+    winner = game.get_winner()
+    print(f"Winner after {count} turns: {winner.name}")
 
     print()
     print(f"{game.players[0].name} ({game.players[0].points} points):{game.players[0].tokens}")

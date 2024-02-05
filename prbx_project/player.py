@@ -175,7 +175,7 @@ class Player(BaseModel):
     def calculate_real_price(self, card: Card) -> dict[Token, int]:
         real_price = copy.deepcopy(card.price)
         for token, price in card.price.items():
-            real_price[token] -= self.bonuses[token]
+            real_price[token] = max((real_price[token] - self.bonuses[token]), 0)
         return real_price
     
     def buy_card(self, card: Card) -> bool:
