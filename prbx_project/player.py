@@ -90,13 +90,13 @@ class Player(BaseModel):
         try:
             move_type = random.choice(list(possible_moves.keys()))
         except IndexError as e:
-            print(available_tokens)
+            print("NO LEGAL MOVES")
+            print(f"Available tokens: {available_tokens}")
             quit()
         # print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
     
-    # Still needs to cover the case where the player has more than 10 tokens after picking some up
     def collect_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Adds tokens to the player's collection.
         
@@ -109,6 +109,11 @@ class Player(BaseModel):
         for token, amount in tokens.items():
             if token in self.tokens:
                 self.tokens[token] += amount
+
+        # return excess tokens
+        if sum([amount for amount in self.tokens.values()]) > 10:
+            tokens_to_return = random.choice(self.get_possible_tokens_to_return())
+            self.return_tokens(tokens_to_return)
 
         # while(len(self.tokens) > 10):
         #     token = random.choice([token for token, amount in tokens.items() if amount > 0]) # This needs to be changed somehow when the player is not picking random moves
@@ -133,7 +138,7 @@ class Player(BaseModel):
         return valid_combinations
         
     def return_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
-        """Remove tokens from the player's collection, this is used when the player has more than 10 tokens.
+        """Remove tokens from the player's collection, used when the player buys a card or has more than 10 tokens.
         
         Args:
             tokens (dict[Token, int]): A dictionary of the tokens to return
@@ -164,7 +169,7 @@ class Player(BaseModel):
         
         self.reserved_cards += [card]
         if available_tokens[Token.YELLOW] > 0:
-            self.tokens[Token.YELLOW] += 1
+            self.collect_tokens({Token.YELLOW: 1})
         return self.reserved_cards
     
     def calculate_real_price(self, card: Card) -> dict[Token, int]:
@@ -194,9 +199,10 @@ class Player(BaseModel):
         # add prestige points
         self.points += card.points
 
+        # pay/return the tokens
+        self.return_tokens(self.calculate_real_price(card))
+
         # add bonuses
         self.bonuses[card.bonus] += 1
 
-        # pay/return the tokens
-        self.return_tokens(self.calculate_real_price(card))
         return reserved

@@ -16,7 +16,12 @@ if __name__ == "__main__":
     # GENERAL GAMEPLAY LOOP
     count = 0
     while (not game.is_over()):
+        print(f"turn {count}")
         for current_player in game.players:
+            # DEBUG
+            if count == 30:
+                pass
+
             # Select move
             player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards)
             # print(f"{current_player.name}: {player_move}")
@@ -37,15 +42,17 @@ if __name__ == "__main__":
                     tokens: dict[Token, int] = player_move[0]
                     current_player.collect_tokens(tokens)
                     game.board.remove_tokens(tokens)
-                    if sum([amount for amount in current_player.tokens.values()]) > 10:
-                        tokens_to_return = random.choice(current_player.get_possible_tokens_to_return())
-                        current_player.return_tokens(tokens_to_return)
-                        game.board.recieve_tokens(tokens_to_return)
+                    # if sum([amount for amount in current_player.tokens.values()]) > 10:
+                    #     tokens_to_return = random.choice(current_player.get_possible_tokens_to_return())
+                    #     current_player.return_tokens(tokens_to_return)
+                    #     game.board.recieve_tokens(tokens_to_return)
+        count += 1
 
 
     # Game has finished
-    winner = game.get_winner()
-    print(winner.name)
+    # winner = game.get_winner()
+    # print(winner.name)
 
-    print(f"{game.players[0].name} ({game.players[0].points}):{game.players[0].tokens}\n")
-    print(f"{game.players[1].name} ({game.players[1].points}):{game.players[1].tokens}")
+    print()
+    print(f"{game.players[0].name} ({game.players[0].points} points):{game.players[0].tokens}")
+    print(f"{game.players[1].name} ({game.players[1].points} points):{game.players[1].tokens}")
