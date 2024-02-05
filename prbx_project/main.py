@@ -25,8 +25,8 @@ if __name__ == "__main__":
             match player_move[1]:
                 case "buy_card":
                     card: Card = player_move[0]
-                    reserved = current_player.buy_card(card)
                     real_price = current_player.calculate_real_price(card)
+                    reserved = current_player.buy_card(card)
                     game.board.recieve_tokens(real_price)
                     if not reserved:
                         game.board.replace_card(card)
@@ -38,10 +38,6 @@ if __name__ == "__main__":
                     tokens: dict[Token, int] = player_move[0]
                     current_player.collect_tokens(tokens)
                     game.board.remove_tokens(tokens)
-                    # if sum([amount for amount in current_player.tokens.values()]) > 10:
-                    #     tokens_to_return = random.choice(current_player.get_possible_tokens_to_return())
-                    #     current_player.return_tokens(tokens_to_return)
-                    #     game.board.recieve_tokens(tokens_to_return)
         count += 1
 
 

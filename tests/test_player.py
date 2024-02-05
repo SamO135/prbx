@@ -16,6 +16,7 @@ def test_player_init():
     assert p.bonuses == {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
 
 
+# Add test for when yellow tokens need to be used
 def test_get_buyable_cards(test_card_set,test_player_tokens):
     p = Player(name="test", tokens=test_player_tokens)
 

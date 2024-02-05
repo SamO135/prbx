@@ -27,12 +27,10 @@ class Player(BaseModel):
         """
         buyable_cards = []
         for card in cards:
-            buyable = True
-            for card_token, token_amount in card.price.items():
-                if self.tokens[card_token] + self.bonuses[card_token] < token_amount:
-                    buyable = False
-                    break
-            if buyable:
+            real_price = self.calculate_real_price(card)
+            # From the result of calculate_real_price, the only way the player can buy the card is if they have enough 
+            # yellow tokens, so this is all I need to check for
+            if self.tokens[Token.YELLOW] >= real_price[Token.YELLOW]:
                 buyable_cards.append(card)
         return buyable_cards
     
@@ -173,9 +171,34 @@ class Player(BaseModel):
         return self.reserved_cards
     
     def calculate_real_price(self, card: Card) -> dict[Token, int]:
+        """Given the player's current tokens and bonuses, what is the effective price of the card? 
+        This includes yellows should the player's other tokens not cover the cost.
+        
+        Args:
+            card (Card): The card the price is being calculated for
+            
+        Return:
+            dict[Token, int]: The effective price of the card for the player
+        """
+        # calculate price given player's bonuses
         real_price = copy.deepcopy(card.price)
         for token, price in card.price.items():
             real_price[token] = max((real_price[token] - self.bonuses[token]), 0)
+        
+        num_yellows_needed = 0
+        for token, price in real_price.items():
+            if self.tokens[token] < price:
+                num_missing_tokens = price - self.tokens[token]
+                num_yellows_needed += num_missing_tokens
+                real_price[token] = self.tokens[token]
+        real_price[Token.YELLOW] = num_yellows_needed
+
+        # num_yellows_needed = 0
+        # for token, price in real_price.items():
+        #     num_tokens_missing = price - self.tokens[token]
+        #     if num_tokens_missing > 0:
+        #         num_yellows_needed += num_tokens_missing
+        # real_price[Token.YELLOW] = num_yellows_needed
         return real_price
     
     def buy_card(self, card: Card) -> bool:
