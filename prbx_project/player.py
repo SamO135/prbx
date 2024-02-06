@@ -102,21 +102,18 @@ class Player(BaseModel):
             tokens (dict[Token, int]): A dictionary of the tokens to add to the player's collection
             
         Return:
-            dict[Token, int]: The player's collection of tokens
+            dict[Token, int]: The excess tokens the player is returning
         """
         for token, amount in tokens.items():
             if token in self.tokens:
                 self.tokens[token] += amount
 
         # return excess tokens
+        tokens_to_return = {}
         if sum([amount for amount in self.tokens.values()]) > 10:
-            tokens_to_return = random.choice(self.get_possible_tokens_to_return())
+            tokens_to_return = random.choice(self.get_possible_tokens_to_return()) # This needs to be changed somehow when the player is not picking random moves
             self.return_tokens(tokens_to_return)
-
-        # while(len(self.tokens) > 10):
-        #     token = random.choice([token for token, amount in tokens.items() if amount > 0]) # This needs to be changed somehow when the player is not picking random moves
-        #     self.return_token(token)
-        return self.tokens
+        return tokens_to_return
     
     def get_possible_tokens_to_return(self) -> list[dict[Token, int]]:
         """Get all possible combinations of tokens the player can return when over 10 tokens. This includes yellow tokens.

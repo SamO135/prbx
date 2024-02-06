@@ -36,7 +36,9 @@ if __name__ == "__main__":
                     game.board.replace_card(card, reserved=True)
                 case "collect_tokens":
                     tokens: dict[Token, int] = player_move[0]
-                    current_player.collect_tokens(tokens)
+                    returning_excess_tokens = current_player.collect_tokens(tokens)
+                    if returning_excess_tokens != {}:
+                        game.board.recieve_tokens(returning_excess_tokens)
                     game.board.remove_tokens(tokens)
         count += 1
 
