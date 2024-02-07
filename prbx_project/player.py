@@ -74,7 +74,7 @@ class Player(BaseModel):
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
-    def select_random_move(self, available_tokens: dict[Token, int], available_cards: list[Card]):
+    def select_random_move(self, available_tokens: dict[Token, int], available_cards: list[Card], players): # players parameter is just for debugging purposes
         """Selects a random move from the possible list of moves the player can perform on their turn.
         
         Args:
@@ -89,9 +89,10 @@ class Player(BaseModel):
             move_type = random.choice(list(possible_moves.keys()))
         except IndexError as e:
             print("NO LEGAL MOVES")
-            print(f"Available tokens: {available_tokens}")
+            print(f"available tokens: {available_tokens}")
+            print(f"player1 tokens:   {players[0].tokens}")
+            print(f"player2 tokens:   {players[1].tokens}")
             quit()
-        # print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
     

@@ -6,6 +6,7 @@ from prbx_project.card import Card
 from prbx_project.settings import Token
 
 if __name__ == "__main__":
+    # for i in range(100):
     player1 = Player(name="player1")
     player2 = Player(name="player2")
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
     while (not game.is_over()):
         for current_player in game.players:
             # Select move
-            player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards)
+            player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards, game.players)
             # print(f"{current_player.name}: {player_move}")
 
             # Play move

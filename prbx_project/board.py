@@ -7,9 +7,9 @@ from prbx_project.card import Card
 class Board(BaseModel):
     """A class representing the board."""
 
-    available_tokens: dict[Token, int] = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 4, 
+    available_tokens: dict[Token, int] = {Token.RED: 4, Token.BLUE: 4, Token.GREEN: 4,
                                           Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
-    available_cards: list[Card] = [random.choice(all_cards[0]) for _ in range(12)]
+    available_cards: list[Card] = [random.choice(all_cards[tier]) for _ in range(4) for tier in range(3)] # randomly select 4 cards from each tier of cards
 
     def remove_tokens(self, tokens: dict[Token, int]):
         """Removes tokens to the board.
@@ -40,7 +40,12 @@ class Board(BaseModel):
         Return:
             Card: The newly generated card
         """
+        if len(all_cards[card.tier-1]) <= 0:
+            print(f"NO MORE TIER {card.tier} CARDS")
+            quit()
         self.available_cards.remove(card)
-        self.available_cards += [random.choice(all_cards[card.tier-1])]
+        card_index = random.randint(0, len(all_cards[card.tier-1])-1)
+        self.available_cards += [all_cards[card.tier-1][card_index]]
+        all_cards[card.tier-1].pop(card_index)
         if reserved and self.available_tokens[Token.YELLOW] > 0:
             self.remove_tokens(tokens={Token.YELLOW: 1})
