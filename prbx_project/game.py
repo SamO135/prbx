@@ -49,5 +49,24 @@ class Game(BaseModel):
     #     self.board.remove_tokens(tokens)
     #     self.current_player.collect_tokens(tokens)
 
+    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player):
+        num_tokens = 0
+        num_tokens += sum(board.available_tokens.values())
+        num_tokens += sum(player1.tokens.values())
+        num_tokens += sum(player2.tokens.values())
+
+        tokens = board.available_tokens
+        for token, _ in tokens.items():
+            tokens[token] += player1.tokens[token]
+            tokens[token] += player2.tokens[token]
+        return tokens, num_tokens
 
 
+    def collect_tokens():
+        pass
+
+    def reserve_card():
+        pass
+
+    def buy_card():
+        pass

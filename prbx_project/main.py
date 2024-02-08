@@ -10,9 +10,7 @@ if __name__ == "__main__":
     player1 = Player(name="player1")
     player2 = Player(name="player2")
 
-    board = Board()
-
-    game = Game(board=board, players=[player1, player2])
+    game = Game(board=Board(), players=[player1, player2])
 
     # GENERAL GAMEPLAY LOOP
     count = 0
@@ -33,7 +31,7 @@ if __name__ == "__main__":
                         game.board.replace_card(card)
                 case "reserve_card":
                     card: Card = player_move[0]
-                    current_player.reserve_card(card, board.available_tokens)
+                    current_player.reserve_card(card, game.board.available_tokens)
                     game.board.replace_card(card, reserved=True)
                 case "collect_tokens":
                     tokens: dict[Token, int] = player_move[0]

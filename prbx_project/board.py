@@ -38,7 +38,7 @@ class Board(BaseModel):
             reserved (bool): True if the card is being reserved, False if the card is being purchased
             
         Return:
-            Card: The newly generated card
+            Card: The new card
         """
         if len(all_cards[card.tier-1]) <= 0:
             print(f"NO MORE TIER {card.tier} CARDS")
