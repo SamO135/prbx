@@ -29,23 +29,30 @@ class Board(BaseModel):
         for token, amount in tokens.items():
             self.available_tokens[token] += amount
         return self.available_tokens
-    
-    def replace_card(self, card: Card, reserved: bool = False) -> Card:
-        """Replace one of the available cards with a new random card of the same tier.
+
+    def remove_card(self, card: Card):
+        """Remove card from the board.
         
         Args:
-            card (Card): The card to be replaced
-            reserved (bool): True if the card is being reserved, False if the card is being purchased
+            card (Card): The card to remove
+        
+        Return:
+            list[Card]: The list of cards afterwards
+            
+        """
+        self.available_cards.remove(card)
+        return self.available_cards
+
+    def add_new_card(self, tier: int):
+        """Add a new card to the board.
+        
+        Args:
+            tier: The tier of card to add
             
         Return:
             Card: The new card
         """
-        if len(all_cards[card.tier-1]) <= 0:
-            print(f"NO MORE TIER {card.tier} CARDS")
-            quit()
-        self.available_cards.remove(card)
-        card_index = random.randint(0, len(all_cards[card.tier-1])-1)
-        self.available_cards += [all_cards[card.tier-1][card_index]]
-        all_cards[card.tier-1].pop(card_index)
-        if reserved and self.available_tokens[Token.YELLOW] > 0:
-            self.remove_tokens(tokens={Token.YELLOW: 1})
+        new_card = random.choice(all_cards[tier])
+        self.available_cards += [new_card]
+        all_cards[tier].remove(new_card)
+        return new_card
