@@ -1,6 +1,10 @@
 import pytest
 from prbx_project.card import Card
 from prbx_project.settings import Token
+from prbx_project.player import Player
+from prbx_project.game import Game
+from prbx_project.board import Board
+
 {Token.RED: 3, Token.GREEN: 0, Token.BLUE: 3, Token.WHITE: 5, Token.BLACK: 3}
 @pytest.fixture
 def test_card_set():
@@ -29,3 +33,11 @@ def test_card_set():
 def test_player_tokens():
     tokens = {Token.RED: 3, Token.BLUE: 0, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
     return tokens
+
+
+@pytest.fixture
+def test_game_setup():
+    player1 = Player(name="player1")
+    player2 = Player(name="player2")
+    game = Game(board=Board(), players=[player1, player2])
+    return game

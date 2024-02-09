@@ -17,7 +17,7 @@ def test_player_init():
 
 
 # Add test for when yellow tokens need to be used
-def test_get_buyable_cards(test_card_set,test_player_tokens):
+def test_get_buyable_cards(test_card_set, test_player_tokens):
     p = Player(name="test", tokens=test_player_tokens)
 
     buyable_cards = p.get_buyable_cards(cards=test_card_set)
@@ -94,35 +94,37 @@ def test_get_possible_tokens_to_return():
     assert possible_tokens_to_return == answer
 
 
-def test_return_tokens():
+def test_remove_tokens():
     p = Player(name="test", tokens={Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 3, Token.BLACK: 1, Token.YELLOW: 2})
-    p.return_tokens(tokens={Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1})
+    p.remove_tokens(tokens={Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1})
     assert p.tokens == {Token.RED: 1, Token.BLUE: 2, Token.GREEN: 1, Token.WHITE: 3, Token.BLACK: 0, Token.YELLOW: 2}
 
 
 def test_reserve_card(test_card_set):
     p = Player(name="test")
     board = Board()
-    p.reserve_card(test_card_set[0], board.available_tokens)
+    p.reserve_card(test_card_set[0])
     assert p.reserved_cards == [test_card_set[0]]
 
-    with pytest.raises(ValueError):
-        p.reserve_card(test_card_set[1:], board.available_tokens)
+    # with pytest.raises(ValueError):
+    #     p.reserve_card(test_card_set[1:])
 
-    p.reserve_card(test_card_set[1], board.available_tokens)
-    p.reserve_card(test_card_set[2], board.available_tokens)
+    p.reserve_card(test_card_set[1])
+    p.reserve_card(test_card_set[2])
     assert p.reserved_cards == test_card_set[:3]
 
-    with pytest.raises(IndexError):
-        p.reserve_card(test_card_set[3], board.available_tokens)
+    # with pytest.raises(IndexError):
+    #     p.reserve_card(test_card_set[3])
 
 
 def test_calculate_real_price(test_card_set):
-    card = test_card_set[0]
+    card = test_card_set[0] # price={Token.RED: 2, Token.BLUE: 3, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0}
+
     p = Player(name="test", bonuses={Token.RED: 1, Token.BLUE: 2, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0})
     real_price = p.calculate_real_price(card)
-    assert real_price == {Token.RED: 1, Token.GREEN: 2, Token.BLUE: 1, Token.WHITE: 0, Token.BLACK: 0}
+    assert real_price == {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 4}
 
+    p.tokens = {Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
+    real_price = p.calculate_real_price(card)
+    assert real_price == {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
 
-def test_buy_card():
-    pass

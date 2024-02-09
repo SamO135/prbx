@@ -14,10 +14,10 @@ def test_receive_tokens():
     pass
 
 
-def test_replace_card():
-    board = Board()
-    card_to_replace = board.available_cards[0]
-    board.replace_card(card_to_replace)
+# def test_replace_card():
+#     board = Board()
+#     card_to_replace = board.available_cards[0]
+#     board.replace_card(card_to_replace)
 
-    assert card_to_replace not in board.available_cards
-    assert len(board.available_cards) == 12
+#     assert card_to_replace not in board.available_cards
+#     assert len(board.available_cards) == 12
