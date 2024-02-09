@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from prbx_project.card import Card
 from prbx_project.settings import Token
-from itertools import combinations, product
+from itertools import combinations
 import random
 import copy
 
@@ -70,7 +70,6 @@ class Player(BaseModel):
         possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
         # remove move_type if there are no possible moves for that type
         possible_moves = {move_type: moves for move_type, moves in possible_moves.items() if moves != []}
-        # print(possible_moves["collect_tokens"])
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
@@ -101,20 +100,47 @@ class Player(BaseModel):
         
         Args:
             tokens (dict[Token, int]): A dictionary of the tokens to add to the player's collection
-            
-        Return:
-            dict[Token, int]: The excess tokens the player is returning
         """
         for token, amount in tokens.items():
             if token in self.tokens:
                 self.tokens[token] += amount
+    
+    def remove_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
+        """Removed tokens from the player's collection.
+        
+        Args:
+            tokens (dict[Token, int]): A dictionary of the tokens to remove from the player's collection
+        """
+        for token, amount in tokens.items():
+            self.tokens[token] = max(self.tokens[token] - amount, 0)
 
-        # return excess tokens
-        tokens_to_return = {}
-        if sum([amount for amount in self.tokens.values()]) > 10:
-            tokens_to_return = random.choice(self.get_possible_tokens_to_return()) # This needs to be changed somehow when the player is not picking random moves
-            self.return_tokens(tokens_to_return)
-        return tokens_to_return
+    def collect_card(self, card: Card):
+        """Add card to hand. Collect the bonus and points.
+        
+        Args:
+            card (Card): The card the player is collecting
+        """
+        self.hand += [card]
+        self.bonuses[card.bonus] += 1
+        self.points += card.points
+
+
+    def reserve_card(self, card):
+        """Add card to reserved cards.
+        
+        Args:
+            card (Card): The card the player is collecting
+        """
+        self.reserved_cards += [card]
+
+    def remove_reserved_card(self, card):
+        """Remove card from reserved cards.
+        
+        Args:
+            card (Card): The card to remove
+        """
+        self.reserved_cards.remove(card)
+
     
     def get_possible_tokens_to_return(self) -> list[dict[Token, int]]:
         """Get all possible combinations of tokens the player can return when over 10 tokens. This includes yellow tokens.
@@ -132,41 +158,11 @@ class Player(BaseModel):
             for combo in valid_combinations_tuples
         ]
         return valid_combinations
-        
-    def return_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
-        """Remove tokens from the player's collection, used when the player buys a card or has more than 10 tokens.
-        
-        Args:
-            tokens (dict[Token, int]): A dictionary of the tokens to return
-            
-        Return:
-            dict[Token, int]: The player's tokens
-        """
-        for token, amount in tokens.items():
-            self.tokens[token] -= amount
-        if any(amount for amount in self.tokens.values()) < 0:
-            raise ValueError("Player cannot return more tokens than they own")
-        return self.tokens
     
-    def reserve_card(self, card: Card, available_tokens: dict[Token, int]) -> list[Card]:
-        """Add a card to the players reserved cards list and give them a yellow token if one is available.
-        
-        Args:
-            card (Card): The card the player is reserving
-            available_tokens (dict[Token, int]): The available tokens on the board
-            
-        Return:
-            list[Card]: The player's list of reserved cards
-        """
-        if not isinstance(card, Card):
-            raise ValueError(f"Method expected {Card} but got {type(card)}")
-        if len(self.reserved_cards) >= 3:
-            raise IndexError(f"Player ({self.name}) already has 3 reserved cards")
-        
-        self.reserved_cards += [card]
-        if available_tokens[Token.YELLOW] > 0:
-            self.collect_tokens({Token.YELLOW: 1})
-        return self.reserved_cards
+    def choose_tokens_to_return(self) -> dict[Token, int]:
+        """Method to choose the combination of tokens to return when the player has over 10 tokens."""
+        tokens = random.choice(self.get_possible_tokens_to_return())
+        return tokens
     
     def calculate_real_price(self, card: Card) -> dict[Token, int]:
         """Given the player's current tokens and bonuses, what is the effective price of the card? 
@@ -183,6 +179,7 @@ class Player(BaseModel):
         for token, price in card.price.items():
             real_price[token] = max((real_price[token] - self.bonuses[token]), 0)
         
+        # calculate the number of yellow tokens needed to buy the card
         num_yellows_needed = 0
         for token, price in real_price.items():
             if self.tokens[token] < price:
@@ -191,39 +188,4 @@ class Player(BaseModel):
                 real_price[token] = self.tokens[token]
         real_price[Token.YELLOW] = num_yellows_needed
 
-        # num_yellows_needed = 0
-        # for token, price in real_price.items():
-        #     num_tokens_missing = price - self.tokens[token]
-        #     if num_tokens_missing > 0:
-        #         num_yellows_needed += num_tokens_missing
-        # real_price[Token.YELLOW] = num_yellows_needed
         return real_price
-    
-    def buy_card(self, card: Card) -> bool:
-        """Add a card to the players hand.
-        
-        Args:
-            card (Card): The card the player is buying
-            
-        Return:
-            bool: True if card is reserved, False otherwise"""
-        if not isinstance(card, Card):
-            raise ValueError(f"Method expected {Card} but got {type(card)}")
-        self.hand += [card]
-
-        # check if the card is one of the reserved cards
-        reserved = False
-        if card in self.reserved_cards:
-            self.reserved_cards.remove(card)
-            reserved = True
-
-        # add prestige points
-        self.points += card.points
-
-        # pay/return the tokens
-        self.return_tokens(self.calculate_real_price(card))
-
-        # add bonuses
-        self.bonuses[card.bonus] += 1
-
-        return reserved

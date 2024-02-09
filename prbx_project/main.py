@@ -1,4 +1,3 @@
-import random
 from prbx_project.game import Game
 from prbx_project.player import Player
 from prbx_project.board import Board
@@ -10,9 +9,7 @@ if __name__ == "__main__":
     player1 = Player(name="player1")
     player2 = Player(name="player2")
 
-    board = Board()
-
-    game = Game(board=board, players=[player1, player2])
+    game = Game(board=Board(), players=[player1, player2])
 
     # GENERAL GAMEPLAY LOOP
     count = 0
@@ -20,27 +17,18 @@ if __name__ == "__main__":
         for current_player in game.players:
             # Select move
             player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards, game.players)
-            # print(f"{current_player.name}: {player_move}")
 
             # Play move
             match player_move[1]:
                 case "buy_card":
                     card: Card = player_move[0]
-                    real_price = current_player.calculate_real_price(card)
-                    reserved = current_player.buy_card(card)
-                    game.board.recieve_tokens(real_price)
-                    if not reserved:
-                        game.board.replace_card(card)
+                    game.buy_card(current_player, game.board, card)
                 case "reserve_card":
                     card: Card = player_move[0]
-                    current_player.reserve_card(card, board.available_tokens)
-                    game.board.replace_card(card, reserved=True)
+                    game.reserve_card(current_player, game.board, card)
                 case "collect_tokens":
                     tokens: dict[Token, int] = player_move[0]
-                    returning_excess_tokens = current_player.collect_tokens(tokens)
-                    if returning_excess_tokens != {}:
-                        game.board.recieve_tokens(returning_excess_tokens)
-                    game.board.remove_tokens(tokens)
+                    game.collect_tokens(current_player, game.board, tokens)
         count += 1
 
 
