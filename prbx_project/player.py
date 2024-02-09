@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from prbx_project.card import Card
 from prbx_project.settings import Token
-from itertools import combinations, product
+from itertools import combinations
 import random
 import copy
 
@@ -70,7 +70,6 @@ class Player(BaseModel):
         possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
         # remove move_type if there are no possible moves for that type
         possible_moves = {move_type: moves for move_type, moves in possible_moves.items() if moves != []}
-        # print(possible_moves["collect_tokens"])
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
@@ -113,8 +112,7 @@ class Player(BaseModel):
             tokens (dict[Token, int]): A dictionary of the tokens to remove from the player's collection
         """
         for token, amount in tokens.items():
-            if token in self.tokens:
-                self.tokens[token] = max(self.tokens[token] - amount, 0)
+            self.tokens[token] = max(self.tokens[token] - amount, 0)
 
     def collect_card(self, card: Card):
         """Add card to hand. Collect the bonus and points.

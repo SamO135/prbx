@@ -1,4 +1,3 @@
-import random
 from prbx_project.game import Game
 from prbx_project.player import Player
 from prbx_project.board import Board

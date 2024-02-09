@@ -37,6 +37,7 @@ def test_player_tokens():
 
 @pytest.fixture
 def test_game_setup():
+    """Game setup for a 2 player game."""
     player1 = Player(name="player1")
     player2 = Player(name="player2")
     game = Game(board=Board(), players=[player1, player2])
