@@ -13,6 +13,7 @@ def test_game_init(game: Game):
     assert game.max_points == 15
 
 
+# Add test for force ending the game
 def test_is_over(game: Game):
     assert game.is_over() == False
     game.current_player.points = 15

@@ -11,6 +11,7 @@ class Game(BaseModel):
     players: list[Player]
     current_player: Player = None
     max_points: int = 15
+    force_end: bool = False
 
     def __init__(self, *args, **kwargs):
         """Constructor method."""
@@ -24,6 +25,8 @@ class Game(BaseModel):
         Return:
             bool: True if game has finished, False otherwise.
         """
+        if self.force_end:
+            return True
         for player in self.players:
             if player.points >= self.max_points:
                 return True

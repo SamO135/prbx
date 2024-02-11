@@ -31,7 +31,7 @@ def test_card_set():
 
 @pytest.fixture
 def test_player_tokens():
-    tokens = {Token.RED: 3, Token.BLUE: 0, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
+    tokens = {Token.RED: 3, Token.GREEN: 2, Token.BLUE: 0, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
     return tokens
 
 

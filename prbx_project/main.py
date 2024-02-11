@@ -15,8 +15,21 @@ if __name__ == "__main__":
     count = 0
     while (not game.is_over()):
         for current_player in game.players:
+            game.current_player = current_player
             # Select move
-            player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards, game.players)
+            try:
+                all_moves = current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards) # For debugging
+                player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards, game.players)
+                game.current_player.locked = False
+            except:
+                game.current_player.locked = True
+                if (all([player.locked for player in game.players])):
+                    print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
+                    game.force_end = True
+                    break
+                else:
+                    print(f"NO LEGAL MOVES FOR {game.current_player.name}")
+                continue
 
             # Play move
             match player_move[1]:
@@ -33,9 +46,9 @@ if __name__ == "__main__":
 
 
     # Game has finished
-    winner = game.get_winner()
-    print(f"Winner after {count} turns: {winner.name}")
-
+    if not game.force_end:
+        winner = game.get_winner()
+        print(f"Winner after {count} turns: {winner.name}")
+        print(f"{game.players[0].name} ({game.players[0].points} points):{game.players[0].tokens}")
+        print(f"{game.players[1].name} ({game.players[1].points} points):{game.players[1].tokens}")
     print()
-    print(f"{game.players[0].name} ({game.players[0].points} points):{game.players[0].tokens}")
-    print(f"{game.players[1].name} ({game.players[1].points} points):{game.players[1].tokens}")

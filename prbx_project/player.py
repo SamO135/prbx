@@ -12,8 +12,9 @@ class Player(BaseModel):
     hand: list[Card] = []
     reserved_cards: list[Card] = []
     points: int = 0
-    tokens: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
-    bonuses: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    tokens: dict[Token, int] = {Token.RED: 0, Token.GREEN: 0, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    bonuses: dict[Token, int] = {Token.RED: 0, Token.GREEN: 0, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    locked: bool = False
 
 
     def get_buyable_cards(self, cards: list[Card]) -> list[Card]:
@@ -84,14 +85,7 @@ class Player(BaseModel):
             A tuple of the move and the category of the move
         """
         possible_moves = self.get_possible_moves(available_tokens, available_cards)
-        try:
-            move_type = random.choice(list(possible_moves.keys()))
-        except IndexError as e:
-            print("NO LEGAL MOVES")
-            print(f"available tokens: {available_tokens}")
-            print(f"player1 tokens:   {players[0].tokens}")
-            print(f"player2 tokens:   {players[1].tokens}")
-            quit()
+        move_type = random.choice(list(possible_moves.keys()))
         move = random.choice(possible_moves[move_type])
         return (move, move_type)
     
