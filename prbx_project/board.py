@@ -8,12 +8,17 @@ class Board(BaseModel):
     """A class representing the board."""
 
     all_cards: list[list[Card]] = all_cards
-    available_cards: list[Card] = [all_cards[tier].pop(random.randrange(len(all_cards[tier]))) for _ in range(4) for tier in range(3)] # randomly select 4 cards from each tier of cards
     available_tokens: dict[Token, int] = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 4,
                                           Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
+    available_cards: list[Card] = []
+
+    def __init__(self, *args, **kwargs):
+        """Constructor method."""
+        super().__init__(*args, **kwargs)
+        self.available_cards: list[Card] = [self.all_cards[tier].pop(random.randrange(len(self.all_cards[tier]))) for _ in range(4) for tier in range(3)] # randomly select 4 cards from each tier of cards
 
     def remove_tokens(self, tokens: dict[Token, int]):
-        """Removes tokens to the board.
+        """Removes tokens from the board.
         
         Args:
             tokens (dict[Token, int]): A dictionary of the tokens to remove from the board
@@ -22,13 +27,28 @@ class Board(BaseModel):
             dict[Token, int]: The remaining tokens on the board
         """
         for token, amount in tokens.items():
+            if amount < 0:
+                raise ValueError("Board cannot remove negative tokens.")
             if token in self.available_tokens:
+                if amount > self.available_tokens[token]:
+                    raise ValueError("Board cannot remove more tokens than are present.")
                 self.available_tokens[token] -= amount
         return self.available_tokens
     
     def recieve_tokens(self, tokens: dict[Token, int]):
+        """Adds tokens to the board.
+        
+        Args:
+            tokens (dict[Token, int]): A dictionary of the tokens to add to the board
+            
+        Return:
+            dict[Token, int]: The tokens on the board
+        """
         for token, amount in tokens.items():
-            self.available_tokens[token] += amount
+            if amount < 0:
+                raise ValueError("Board cannot receive negative tokens.")
+            if token in self.available_tokens:
+                self.available_tokens[token] += amount
         return self.available_tokens
 
     def remove_card(self, card: Card):
@@ -48,7 +68,7 @@ class Board(BaseModel):
         """Add a new card to the board.
         
         Args:
-            tier: The tier of card to add
+            tier: The tier of card to add (0 - 2)
             
         Return:
             Card: The new card

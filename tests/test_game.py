@@ -13,10 +13,14 @@ def test_game_init(game: Game):
     assert game.max_points == 15
 
 
-# Add test for force ending the game
 def test_is_over(game: Game):
     assert game.is_over() == False
+
     game.current_player.points = 15
+    assert game.is_over() == True
+
+    game.current_player.points = 0
+    game.force_end = True
     assert game.is_over() == True
 
 
@@ -54,7 +58,6 @@ def test_replace_card(game: Game):
     assert len(game.board.available_cards) == 11
 
 
-
 def test_collect_tokens(game: Game):
     assert game.board.available_tokens == {Token.RED: 4, Token.BLUE: 4, Token.GREEN: 4,Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
     
@@ -88,6 +91,7 @@ def test_reserve_card(game: Game):
     assert len(game.board.available_cards) == 11
     assert game.players[0].tokens[Token.YELLOW] == 1
     assert game.board.available_tokens[Token.YELLOW] == 0
+
 
 def test_buy_card(game: Game):
     assert game.players[0].hand == []
