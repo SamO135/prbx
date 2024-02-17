@@ -99,7 +99,7 @@ def test_get_possible_tokens_to_return():
     # TEST 2
     p1 = Player(name="test2", tokens={Token.RED: 2, Token.BLUE: 0, Token.GREEN: 3, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0})
     possible_tokens_to_return = p1.get_possible_tokens_to_return()
-    answer = []
+    answer = [{}]
     assert possible_tokens_to_return == answer
 
 
@@ -129,4 +129,14 @@ def test_calculate_real_price(test_card_set):
     p.tokens = {Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
     real_price = p.calculate_real_price(card)
     assert real_price == {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+
+
+# def test_get_payment_combinations(test_card_set):
+#     card = test_card_set[0] # price={Token.RED: 2, Token.BLUE: 3, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0}
+#     p = Player(name="test", tokens={Token.RED: 2, Token.BLUE: 1, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 2})
+#     real_price = p.calculate_real_price(card)
+#     payment_combinations = p.get_payment_combinations(real_price)
+#     for payment in payment_combinations:
+#         print(f"payment: {payment}")
+#     assert False
 

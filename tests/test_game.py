@@ -61,13 +61,13 @@ def test_replace_card(game: Game):
 def test_collect_tokens(game: Game):
     assert game.board.available_tokens == {Token.RED: 4, Token.BLUE: 4, Token.GREEN: 4,Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
     
-    game.collect_tokens(game.players[0], game.board, {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0})
+    game.collect_tokens(game.players[0], game.board, {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, returning={})
     assert game.players[0].tokens == {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
     assert game.board.available_tokens == {Token.RED: 3, Token.BLUE: 3, Token.GREEN: 3, Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
 
     game.players[0].tokens = {Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 1, Token.YELLOW: 1}
     assert sum(game.board.available_tokens.values()) == 22
-    game.collect_tokens(game.players[0], game.board, {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0})
+    game.collect_tokens(game.players[0], game.board, {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, returning={Token.RED: 2, Token.BLACK: 1})
     assert sum(game.players[0].tokens.values()) == 10
     assert sum(game.board.available_tokens.values()) == 22
 
@@ -76,7 +76,7 @@ def test_reserve_card(game: Game):
     assert game.players[0].reserved_cards == []
     card = game.board.available_cards[0]
 
-    game.reserve_card(game.players[0], game.board, card)
+    game.reserve_card(game.players[0], game.board, card, returning={})
     assert game.players[0].reserved_cards == [card]
     assert card not in game.board.available_cards
     assert len(game.board.available_cards) == 12
@@ -86,7 +86,7 @@ def test_reserve_card(game: Game):
     game.board.available_tokens[Token.YELLOW] = 0
     game.board.all_cards = [[], [], []]
     card = game.board.available_cards[0]
-    game.reserve_card(game.players[0], game.board, card)
+    game.reserve_card(game.players[0], game.board, card, returning={})
     assert card not in game.board.available_cards
     assert len(game.board.available_cards) == 11
     assert game.players[0].tokens[Token.YELLOW] == 1
@@ -106,7 +106,7 @@ def test_buy_card(game: Game):
     assert game.players[0].points == card.points
 
     game.players[0].bonuses = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0} #reset the bonuses
-    game.reserve_card(game.players[0], game.board, game.board.available_cards[0])
+    game.reserve_card(game.players[0], game.board, game.board.available_cards[0], returning={})
     card = game.players[0].reserved_cards[0]
     game.players[0].tokens = card.price
     assert card not in game.board.available_cards

@@ -63,7 +63,7 @@ class Game(BaseModel):
             print(f"No more tier {card.tier} cards in the deck, could not replace.")
             return None
 
-    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int]):
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]):
         """Perform the 'collect tokens' move.
         
         Args:
@@ -75,16 +75,13 @@ class Game(BaseModel):
         player.collect_tokens(tokens)
         # board remove tokens
         board.remove_tokens(tokens)
-        # check player excess tokens
-        if sum(player.tokens.values()) > 10:
-            # decide which tokens to return
-            tokens_to_return = player.choose_tokens_to_return()
-            # player remove tokens
-            player.remove_tokens(tokens_to_return)
-            # board collect tokens
-            board.recieve_tokens(tokens_to_return)
 
-    def reserve_card(self, player: Player, board: Board, card: Card):
+        # player remove excess tokens
+        player.remove_tokens(returning)
+        # board collect excess tokens
+        board.recieve_tokens(returning)
+
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]):
         """Perform the 'reserve card' move.
         
         Args:
@@ -100,7 +97,7 @@ class Game(BaseModel):
 
         # collect yellow token. collect_token should cover all the steps for this
         if (board.available_tokens[Token.YELLOW] > 0):
-            self.collect_tokens(player, board, {Token.YELLOW: 1})
+            self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
     def buy_card(self, player: Player, board: Board, card: Card):
         """Perform the 'buy card' move.

@@ -19,7 +19,7 @@ if __name__ == "__main__":
             # Select move
             try:
                 all_moves = current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards) # For debugging
-                player_move = current_player.select_random_move(game.board.available_tokens, game.board.available_cards, game.players)
+                player_move = current_player.select_random_move(all_moves)
                 game.current_player.locked = False
             except:
                 game.current_player.locked = True
@@ -32,16 +32,16 @@ if __name__ == "__main__":
                 continue
 
             # Play move
-            match player_move[1]:
+            match player_move["move_type"]:
                 case "buy_card":
-                    card: Card = player_move[0]
+                    card: Card = player_move["card"]
                     game.buy_card(current_player, game.board, card)
                 case "reserve_card":
-                    card: Card = player_move[0]
-                    game.reserve_card(current_player, game.board, card)
+                    card: Card = player_move["card"]
+                    game.reserve_card(current_player, game.board, card, player_move["returning"])
                 case "collect_tokens":
-                    tokens: dict[Token, int] = player_move[0]
-                    game.collect_tokens(current_player, game.board, tokens)
+                    tokens: dict[Token, int] = player_move["tokens"]
+                    game.collect_tokens(current_player, game.board, tokens, player_move["returning"])
         count += 1
 
 
