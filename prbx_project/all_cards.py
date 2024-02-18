@@ -442,3 +442,5 @@ tier3 =  [
 ]
 
 all_cards = [tier1, tier2, tier3]
+for tier in all_cards:
+    print(len(tier))
