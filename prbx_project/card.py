@@ -4,7 +4,6 @@ from prbx_project.game_token import Token
 class Card(BaseModel):
     """A class representing a development card."""
 
-    id: int = 0
     points: int
     bonus: Token
     price: dict[Token, int]

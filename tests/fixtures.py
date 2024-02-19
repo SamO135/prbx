@@ -8,23 +8,19 @@ from prbx_project.board import Board
 
 @pytest.fixture
 def test_card_set():
-    cards = [Card(id=289, 
-                  points=2, 
+    cards = [Card(points=2, 
                   bonus=Token.BLACK, 
                   price={Token.RED: 2, Token.GREEN: 2, Token.BLUE: 3, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, 
                   tier=1), 
-            Card(id=796, 
-                 points=3, 
+            Card(points=3, 
                  bonus=Token.RED, 
                  price={Token.RED: 1, Token.GREEN: 1, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, 
                  tier=2), 
-            Card(id=734, 
-                 points=2, 
+            Card(points=2, 
                  bonus=Token.WHITE, 
                  price={Token.RED:  0, Token.GREEN: 0, Token.BLUE: 2, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, 
                  tier=1), 
-            Card(id=306, 
-                 points=1, 
+            Card(points=1, 
                  bonus=Token.WHITE, 
                  price={Token.RED: 1, Token.GREEN: 0, Token.BLUE: 0, Token.WHITE: 1, Token.BLACK: 2}, 
                  tier=1)]

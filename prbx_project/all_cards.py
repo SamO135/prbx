@@ -23,7 +23,6 @@ with open("prbx_project/splendor_cards.csv", "r") as file:
                     case "Black":
                         card_data[i] = Token.BLACK
         card = Card(
-            id=0,
             points=card_data[2],
             bonus=card_data[1],
             price={
