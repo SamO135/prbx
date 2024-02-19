@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 
 class Card(BaseModel):
     """A class representing a development card."""

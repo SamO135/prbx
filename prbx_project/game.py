@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from prbx_project.board import Board
 from prbx_project.player import Player
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 
 class Game(BaseModel):
     """A class representing the entire gamestate."""
@@ -20,7 +20,7 @@ class Game(BaseModel):
 
 
     def is_over(self):
-        """Checks if a player has reached the winning score.
+        """Checks if the game has ended.
         
         Return:
             bool: True if game has finished, False otherwise.
@@ -45,7 +45,7 @@ class Game(BaseModel):
         return winner
     
     def replace_card(self, board: Board, card: Card):
-        """Replace a card with its corresponding tier.
+        """Replace a card with another of its corresponding tier.
         
         Args:
             board (Board): The board object
@@ -63,35 +63,37 @@ class Game(BaseModel):
             print(f"No more tier {card.tier} cards in the deck, could not replace.")
             return None
 
-    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int]):
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]):
         """Perform the 'collect tokens' move.
         
         Args:
             player (Player): The player that is collecting tokens
             board (Board): The board object
             tokens (Token): The tokens the player is collecting
+            returning (dict[Token, int]): The tokens the player will return as part of this move
         """
         # player collect tokens
         player.collect_tokens(tokens)
         # board remove tokens
         board.remove_tokens(tokens)
-        # check player excess tokens
-        if sum(player.tokens.values()) > 10:
-            # decide which tokens to return
-            tokens_to_return = player.choose_tokens_to_return()
-            # player remove tokens
-            player.remove_tokens(tokens_to_return)
-            # board collect tokens
-            board.recieve_tokens(tokens_to_return)
 
-    def reserve_card(self, player: Player, board: Board, card: Card):
+        # player remove excess tokens
+        player.remove_tokens(returning)
+        # board collect excess tokens
+        board.recieve_tokens(returning)
+
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]):
         """Perform the 'reserve card' move.
         
         Args:
             player (Player): The player that is reserving a card
             board (Board): The board object
             card (Card): The card the player is reserving
+            returning (dict[Token, int]): The tokens the player will return as part of this move
         """
+        if len(player.reserved_cards) >= 3:
+            raise ValueError("A player cannot have more than 3 cards reserved at once.")
+        
         # player collect card to reserved hand
         player.reserve_card(card)
 
@@ -100,7 +102,7 @@ class Game(BaseModel):
 
         # collect yellow token. collect_token should cover all the steps for this
         if (board.available_tokens[Token.YELLOW] > 0):
-            self.collect_tokens(player, board, {Token.YELLOW: 1})
+            self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
     def buy_card(self, player: Player, board: Board, card: Card):
         """Perform the 'buy card' move.

@@ -1,7 +1,7 @@
 import random
 from pydantic import BaseModel
 from prbx_project.all_cards import all_cards
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 from prbx_project.card import Card
 
 class Board(BaseModel):
@@ -73,6 +73,8 @@ class Board(BaseModel):
         Return:
             Card: The new card
         """
+        if len(self.available_cards) >= 12:
+            raise ValueError("Board cannot have more than 12 cards.")
         new_card = random.choice(self.all_cards[tier])
         self.available_cards += [new_card]
         self.all_cards[tier].remove(new_card)

@@ -1,6 +1,6 @@
 import pytest
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 from prbx_project.player import Player
 from prbx_project.game import Game
 from prbx_project.board import Board
@@ -15,7 +15,7 @@ def test_card_set():
                   tier=1), 
             Card(id=796, 
                  points=3, 
-                 bonus=Token.YELLOW, 
+                 bonus=Token.RED, 
                  price={Token.RED: 1, Token.GREEN: 1, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, 
                  tier=2), 
             Card(id=734, 
