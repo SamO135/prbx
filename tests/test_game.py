@@ -1,5 +1,5 @@
 import pytest
-from tests.fixtures import test_game_setup as game
+from tests.fixtures import test_game_setup as game, test_card_set
 from prbx_project.game import Game
 from prbx_project.game_token import Token
 from prbx_project.card import Card
@@ -26,18 +26,36 @@ def test_is_over(game: Game):
 
 
 # Still need to implement the logic for the case where 2 people finish on the same turn and have the same number of points
-def test_get_winner(game: Game):
+def test_get_winner(game: Game, test_card_set):
+    # test player 1 more points
     game.players[0].points = 15
     game.players[1].points = 12
     assert game.get_winner() == game.players[0]
 
+    # test player 2 more points
     game.players[0].points = 12
     game.players[1].points = 15
     assert game.get_winner() == game.players[1]
 
-    # game.players[0].points = 15
-    # game.players[1].points = 15
-    # assert game.get_winner() == ???
+    # test no player reached winning points
+    with pytest.raises(ValueError):
+        game.players[0].points = 12
+        game.players[1].points = 12
+        assert game.get_winner() == game.players[1]
+
+    # test both players finished with same points but different number of dev cards
+    game.players[0].points = 15
+    game.players[1].points = 15
+    game.players[0].hand = [test_card_set[0], test_card_set[1]]
+    game.players[1].hand = [test_card_set[2]]
+    assert game.get_winner() == game.players[1]
+
+    # test both players finished with same points and same num of dev cards
+    game.players[0].points = 15
+    game.players[1].points = 15
+    game.players[0].hand = [test_card_set[0], test_card_set[1]]
+    game.players[1].hand = [test_card_set[2],test_card_set[3]]
+    assert game.get_winner() == None
 
 
 def test_replace_card(game: Game):

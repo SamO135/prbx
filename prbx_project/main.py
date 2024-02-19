@@ -48,7 +48,8 @@ if __name__ == "__main__":
     # Game has finished
     if not game.force_end:
         winner = game.get_winner()
-        print(f"Winner after {count} turns: {winner.name}")
-        # print(f"{game.players[0].name} ({game.players[0].points} points):{game.players[0].tokens}")
-        # print(f"{game.players[1].name} ({game.players[1].points} points):{game.players[1].tokens}")
+        if winner == None:
+            print(f"Game ended in a draw after {count} turns")
+        else:
+            print(f"Winner after {count} turns: {winner.name}")
     print()

@@ -38,10 +38,22 @@ class Game(BaseModel):
         
         Return:
             Player: The winning player"""
-        winner = self.players[0]
-        for player in self.players:
-            if player.points > winner.points:
-                winner = player
+        player1 = self.players[0]
+        player2 = self.players[1]
+        if player1.points < 15 and player2.points < 15:
+            raise ValueError(f"Game has not finished, no players have reached {self.max_points} points")
+        
+        if player1.points > player2.points:
+            winner = self.players[0]
+        elif player1.points < player2.points:
+            winner = self.players[1]
+        else:
+            if len(player1.hand) < len(player2.hand):
+                winner = player1
+            elif len(player1.hand) > len(player2.hand):
+                winner = player2
+            else:
+                winner = None # The game ended in a draw
         return winner
     
     def replace_card(self, board: Board, card: Card):
