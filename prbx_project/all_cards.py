@@ -1,5 +1,5 @@
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 
 with open("prbx_project/splendor_cards.csv", "r") as file:
     all_cards = [[], [], []]

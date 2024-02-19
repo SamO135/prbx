@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from prbx_project.board import Board
 from prbx_project.player import Player
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 
 class Game(BaseModel):
     """A class representing the entire gamestate."""

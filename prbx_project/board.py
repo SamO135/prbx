@@ -1,7 +1,7 @@
 import random
 from pydantic import BaseModel
 from prbx_project.all_cards import all_cards
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 from prbx_project.card import Card
 
 class Board(BaseModel):

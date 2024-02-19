@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 from itertools import combinations
 import random
 import copy

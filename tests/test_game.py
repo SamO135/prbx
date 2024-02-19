@@ -1,6 +1,6 @@
 from tests.fixtures import test_game_setup as game
 from prbx_project.game import Game
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 from prbx_project.card import Card
 
 

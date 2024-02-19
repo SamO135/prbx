@@ -2,7 +2,7 @@ from prbx_project.game import Game
 from prbx_project.player import Player
 from prbx_project.board import Board
 from prbx_project.card import Card
-from prbx_project.settings import Token
+from prbx_project.game_token import Token
 
 if __name__ == "__main__":
     # for i in range(100):
