@@ -99,8 +99,8 @@ def test_collect_tokens():
 
 def test_get_possible_tokens_to_return():
     # TEST 1
-    p1 = Player(name="test1", tokens={Token.RED: 3, Token.BLUE: 0, Token.GREEN: 4, Token.WHITE: 2, Token.BLACK: 3, Token.YELLOW: 0})
-    possible_tokens_to_return = p1.get_possible_tokens_to_return()
+    p1 = Player(name="test1", tokens={Token.RED: 2, Token.BLUE: 0, Token.GREEN: 3, Token.WHITE: 2, Token.BLACK: 3, Token.YELLOW: 0})
+    possible_tokens_to_return = p1.get_possible_tokens_to_return(additional_tokens={Token.RED: 1, Token.GREEN: 1})
     answer = [
         {Token.RED: 2}, 
         {Token.GREEN: 2}, 
@@ -130,6 +130,9 @@ def test_remove_tokens():
     p.remove_tokens(tokens={Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1})
     assert p.tokens == {Token.RED: 1, Token.BLUE: 2, Token.GREEN: 1, Token.WHITE: 3, Token.BLACK: 0, Token.YELLOW: 2}
 
+    with pytest.raises(ValueError):
+        p.remove_tokens(tokens={Token.RED: 2})
+
 
 def test_reserve_card(test_card_set):
     p = Player(name="test")
@@ -139,6 +142,23 @@ def test_reserve_card(test_card_set):
     p.reserve_card(test_card_set[1])
     p.reserve_card(test_card_set[2])
     assert p.reserved_cards == test_card_set[:3]
+
+    with pytest.raises(ValueError):
+        p.reserve_card(test_card_set[3])
+
+
+def test_remove_reserved_card(test_card_set):
+    p = Player(name="test")
+    p.reserved_cards = [test_card_set[0], test_card_set[1]]
+    p.remove_reserved_card(test_card_set[0])
+    assert p.reserved_cards == [test_card_set[1]]
+
+    with pytest.raises(ValueError):
+        p.remove_reserved_card(test_card_set[0])
+
+
+# def test_choose_tokens_to_return():
+#     pass
 
 
 def test_calculate_real_price(test_card_set):

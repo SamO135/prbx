@@ -56,6 +56,7 @@ def test_remove_card():
     assert card not in board.available_cards
     assert len(board.available_cards) == 11
 
+    # test removing a card that the board does not have
     with pytest.raises(ValueError):
         board.remove_card(card)
 
@@ -69,3 +70,7 @@ def test_add_new_card():
     assert new_card in board.available_cards
     assert new_card not in board.all_cards[old_card.tier-1]
     assert old_card != new_card
+
+    # test adding card past 12 card board limit
+    with pytest.raises(ValueError):
+        board.add_new_card(tier=1)

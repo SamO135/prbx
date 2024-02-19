@@ -73,6 +73,8 @@ class Board(BaseModel):
         Return:
             Card: The new card
         """
+        if len(self.available_cards) >= 12:
+            raise ValueError("Board cannot have more than 12 cards.")
         new_card = random.choice(self.all_cards[tier])
         self.available_cards += [new_card]
         self.all_cards[tier].remove(new_card)

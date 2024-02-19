@@ -1,3 +1,4 @@
+import pytest
 from tests.fixtures import test_game_setup as game
 from prbx_project.game import Game
 from prbx_project.game_token import Token
@@ -54,7 +55,6 @@ def test_replace_card(game: Game):
     new_card: Card = game.replace_card(game.board, old_card)
     assert old_card not in game.board.available_cards
     assert new_card == None
-    print(game.board.available_cards)
     assert len(game.board.available_cards) == 11
 
 
@@ -76,13 +76,24 @@ def test_reserve_card(game: Game):
     assert game.players[0].reserved_cards == []
     card = game.board.available_cards[0]
 
-    game.reserve_card(game.players[0], game.board, card, returning={})
+    # normal reserve card move, with returning a token
+    game.players[0].tokens = {Token.RED: 2, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 0}
+    game.reserve_card(game.players[0], game.board, card, returning={Token.RED: 1 })
     assert game.players[0].reserved_cards == [card]
     assert card not in game.board.available_cards
     assert len(game.board.available_cards) == 12
-    assert game.players[0].tokens[Token.YELLOW] == 1
+    assert game.players[0].tokens == {Token.RED: 1, Token.BLUE: 2, Token.GREEN: 2, Token.WHITE: 2, Token.BLACK: 2, Token.YELLOW: 1}
     assert game.board.available_tokens[Token.YELLOW] == 4
 
+    # test reserve card when player already has 3 reserved cards
+    with pytest.raises(ValueError):
+        game.players[0].reserved_cards = [game.board.available_cards[0], game.board.available_cards[1], game.board.available_cards[2]]
+        card = game.board.available_cards[3]
+        game.reserve_card(game.players[0], game.board, card, returning={})
+
+
+    # reserve card when no more cards in deck to replace with
+    game.players[0].reserved_cards = [game.board.available_cards[0]]
     game.board.available_tokens[Token.YELLOW] = 0
     game.board.all_cards = [[], [], []]
     card = game.board.available_cards[0]
