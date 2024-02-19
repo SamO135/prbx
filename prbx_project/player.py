@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from prbx_project.card import Card
-from prbx_project.settings import Token
-from itertools import combinations, product
+from prbx_project.game_token import Token
+from itertools import combinations
 import random
 import copy
 
@@ -12,12 +12,13 @@ class Player(BaseModel):
     hand: list[Card] = []
     reserved_cards: list[Card] = []
     points: int = 0
-    tokens: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
-    bonuses: dict[Token, int] = {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    tokens: dict[Token, int] = {Token.RED: 0, Token.GREEN: 0, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    bonuses: dict[Token, int] = {Token.RED: 0, Token.GREEN: 0, Token.BLUE: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
+    locked: bool = False
 
 
     def get_buyable_cards(self, cards: list[Card]) -> list[Card]:
-        """Checks which cards the player is able to buy.
+        """Calculates which cards the player is able to buy.
     
         Args:
             cards (list[Card]): A list of Card objects
@@ -27,17 +28,15 @@ class Player(BaseModel):
         """
         buyable_cards = []
         for card in cards:
-            buyable = True
-            for card_token, token_amount in card.price.items():
-                if self.tokens[card_token] + self.bonuses[card_token] < token_amount:
-                    buyable = False
-                    break
-            if buyable:
+            real_price = self.calculate_real_price(card)
+            # From the result of calculate_real_price, the only way the player can buy the card is if they have enough 
+            # yellow tokens, so this is all I need to check for
+            if self.tokens[Token.YELLOW] >= real_price[Token.YELLOW]:
                 buyable_cards.append(card)
         return buyable_cards
     
     def get_token_collection_moves(self, available_tokens: dict[Token, int]) -> list[dict[Token, int]]:
-        """Gets all the combination of moves the player can do involving collecting tokens.
+        """Gets all the combinations of tokens the player can collect from the board.
         
         Args:
             available_tokens (dict[Token, int]): A dictionary of all the tokens available on the board
@@ -67,16 +66,21 @@ class Player(BaseModel):
             A dictionary of all the possible moves the player can make on their turn
         """
         buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
+        # buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": tokens} for card in buyable_cards for tokens in ]
+        buy_card_moves = [{"move_type": "buy_card", "card": card} for card in buyable_cards]
+
         reservable_cards = available_cards if len(self.reserved_cards) < 3 else [] # + 3 face down cards
+        returnable_tokens = [{token:  1} for token in self.tokens if self.tokens[token] > 0] if sum(self.tokens.values()) + 1 > 10 else [{}]
+        reserve_card_moves = [{"move_type": "reserve_card", "card": card, "returning": returning} for card in reservable_cards for returning in returnable_tokens]
+        
         collectable_tokens = self.get_token_collection_moves(available_tokens)
-        possible_moves = {"buy_card": buyable_cards, "reserve_card": reservable_cards, "collect_tokens": collectable_tokens}
-        # remove move_type if there are no possible moves for that type
-        possible_moves = {move_type: moves for move_type, moves in possible_moves.items() if moves != []}
-        # print(possible_moves["collect_tokens"])
+        collection_moves = [{"move_type": "collect_tokens", "tokens": tokens, "returning": returning} for tokens in collectable_tokens for returning in self.get_possible_tokens_to_return(additional_tokens=tokens)]
+        
+        possible_moves = buy_card_moves + reserve_card_moves + collection_moves
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
-    def select_random_move(self, available_tokens: dict[Token, int], available_cards: list[Card]):
+    def select_random_move(self, possible_moves):
         """Selects a random move from the possible list of moves the player can perform on their turn.
         
         Args:
@@ -86,102 +90,121 @@ class Player(BaseModel):
         Return:
             A tuple of the move and the category of the move
         """
-        possible_moves = self.get_possible_moves(available_tokens, available_cards)
-        move_type = random.choice(list(possible_moves.keys()))
-        # print(f"possible_moves[{move_type}]: {possible_moves[move_type]}")
-        move = random.choice(possible_moves[move_type])
-        return (move, move_type)
+        move = random.choice(possible_moves)
+        return move
     
-    # Still needs to cover the case where the player has more than 10 tokens after picking some up
     def collect_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Adds tokens to the player's collection.
         
         Args:
             tokens (dict[Token, int]): A dictionary of the tokens to add to the player's collection
-            
-        Return:
-            dict[Token, int]: The player's collection of tokens
         """
         for token, amount in tokens.items():
             if token in self.tokens:
                 self.tokens[token] += amount
-
-        # while(len(self.tokens) > 10):
-        #     token = random.choice([token for token, amount in tokens.items() if amount > 0]) # This needs to be changed somehow when the player is not picking random moves
-        #     self.return_token(token)
-        return self.tokens
     
-    def get_possible_tokens_to_return(self) -> list[dict[Token, int]]:
-        """Get all possible combinations of tokens the player can return when over 10 tokens. This includes yellow tokens.
+    def remove_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
+        """Removes tokens from the player's collection.
         
+        Args:
+            tokens (dict[Token, int]): A dictionary of the tokens to remove from the player's collection
+        """
+        for token, amount in tokens.items():
+            self.tokens[token] = self.tokens[token] - amount
+            if self.tokens[token] < 0:
+                raise ValueError("Player cannot have negative tokens.")
+
+    def collect_card(self, card: Card):
+        """Adds a card to hand. Collects the bonus and points.
+        
+        Args:
+            card (Card): The card the player is collecting
+        """
+        self.hand += [card]
+        self.bonuses[card.bonus] += 1
+        self.points += card.points
+
+
+    def reserve_card(self, card):
+        """Adds a card to reserved cards.
+        
+        Args:
+            card (Card): The card the player is collecting
+        """
+        if len(self.reserved_cards) >= 3:
+            raise ValueError("A player cannot have more than 3 cards reserved at once.")
+        self.reserved_cards += [card]
+
+    def remove_reserved_card(self, card):
+        """Removes a card from reserved cards.
+        
+        Args:
+            card (Card): The card to remove
+        """
+        self.reserved_cards.remove(card)
+
+    
+    def get_possible_tokens_to_return(self, additional_tokens: dict[Token, int] = {}) -> list[dict[Token, int]]:
+        """Gets all possible combinations of tokens the player can return when over 10 tokens. This includes yellow tokens.
+        
+        Args:
+            additional_tokens (dict[Token, int]): The additional tokens the player may have if they chose to collect tokens as their move
+
         Return:
             list[dict[Token, int]]: All combinations as a list of dictionaries
         """
-        num_to_return = sum([amount for amount in self.tokens.values()]) - 10
+        tokens =  copy.deepcopy(self.tokens)
+        for token, amount in additional_tokens.items():
+            tokens[token] += amount
+
+        num_to_return = sum(tokens.values()) - 10
         if num_to_return <= 0:
-            return []
-        tokens_flat_list = [token for token, amount in self.tokens.items() for _ in range(amount)]
+            return [{}]
+        tokens_flat_list = [token for token, amount in tokens.items() for _ in range(amount)]
         valid_combinations_tuples = set(list(combinations(tokens_flat_list, r=num_to_return)))
         valid_combinations = [
             {token: combo.count(token) for token in combo}
             for combo in valid_combinations_tuples
         ]
         return valid_combinations
-        
-    def return_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
-        """Remove tokens from the player's collection, this is used when the player has more than 10 tokens.
-        
-        Args:
-            tokens (dict[Token, int]): A dictionary of the tokens to return
-            
-        Return:
-            dict[Token, int]: The player's tokens
-        """
-        for token, amount in tokens.items():
-            self.tokens[token] -= amount
-        return self.tokens
     
-    def reserve_card(self, card: Card, available_tokens: dict[Token, int]) -> list[Card]:
-        """Add a card to the players reserved cards list and give them a yellow token if one is available.
-        
-        Args:
-            card (Card): The card the player is reserving
-            available_tokens (dict[Token, int]): The available tokens on the board
-            
-        Return:
-            list[Card]: The player's list of reserved cards
-        """
-        if not isinstance(card, Card):
-            raise ValueError(f"Method expected {Card} but got {type(card)}")
-        if len(self.reserved_cards) >= 3:
-            raise IndexError(f"Player ({self.name}) already has 3 reserved cards")
-        
-        self.reserved_cards += [card]
-        if available_tokens[Token.YELLOW] > 0:
-            self.tokens[Token.YELLOW] += 1
-        return self.reserved_cards
+    # def choose_tokens_to_return(self) -> dict[Token, int]:
+    #     """Method to choose the combination of tokens to return when the player has over 10 tokens."""
+    #     tokens = random.choice(self.get_possible_tokens_to_return())
+    #     return tokens
     
-    def buy_card(self, card: Card) -> bool:
-        """Add a card to the players hand.
+    def calculate_real_price(self, card: Card) -> dict[Token, int]:
+        """Applies the discount from the player's bonuses to the card's price, and includes the 
+        minimum number of yellow tokens needed by the player to buy the card.
         
         Args:
-            card (Card): The card the player is buying
+            card (Card): The card the price is being calculated for
             
         Return:
-            bool: True if card is reserved, False otherwise"""
-        if not isinstance(card, Card):
-            raise ValueError(f"Method expected {Card} but got {type(card)}")
-        self.hand += [card]
+            dict[Token, int]: The effective price of the card for the player
+        """
+        # calculate price given player's bonuses
+        real_price = copy.deepcopy(card.price)
+        for token, price in card.price.items():
+            real_price[token] = max((real_price[token] - self.bonuses[token]), 0)
+        
+        # calculate the number of yellow tokens needed to buy the card
+        num_yellows_needed = 0
+        for token, price in real_price.items():
+            if self.tokens[token] < price:
+                num_missing_tokens = price - self.tokens[token]
+                num_yellows_needed += num_missing_tokens
+                real_price[token] = self.tokens[token]
+        real_price[Token.YELLOW] = num_yellows_needed
 
-        # check if the card is one of the reserved cards
-        reserved = False
-        if card in self.reserved_cards:
-            self.reserved_cards.remove(card)
-            reserved = True
+        return real_price
+    
+    # def get_payment_combinations(self, real_price: dict[Token, int]):
+    #     real_price_copy: dict[Token, int] = copy.deepcopy(real_price)
+    #     real_price_copy.pop(Token.YELLOW)
+    #     tokens_flat_list = [token for token, amount in real_price_copy.items() for _ in range(amount)]
+    #     payment_combinations = []
+    #     for num_yellows in range(real_price[Token.YELLOW]):
+    #         payment_combinations += [[token for token in combo] for combo in combinations(tokens_flat_list, len(tokens_flat_list) - num_yellows)]
 
-        # add prestige points
-        self.points += card.points
-
-        # add bonuses
-        self.bonuses[card.bonus] += 1
-        return reserved
+    #     return payment_combinations

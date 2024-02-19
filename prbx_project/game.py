@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 from prbx_project.board import Board
 from prbx_project.player import Player
-from prbx_project.settings import Token
+from prbx_project.card import Card
+from prbx_project.game_token import Token
 
 class Game(BaseModel):
     """A class representing the entire gamestate."""
@@ -10,6 +11,7 @@ class Game(BaseModel):
     players: list[Player]
     current_player: Player = None
     max_points: int = 15
+    force_end: bool = False
 
     def __init__(self, *args, **kwargs):
         """Constructor method."""
@@ -18,11 +20,13 @@ class Game(BaseModel):
 
 
     def is_over(self):
-        """Checks if a player has reached the winning score.
+        """Checks if the game has ended.
         
         Return:
             bool: True if game has finished, False otherwise.
         """
+        if self.force_end:
+            return True
         for player in self.players:
             if player.points >= self.max_points:
                 return True
@@ -34,20 +38,120 @@ class Game(BaseModel):
         
         Return:
             Player: The winning player"""
-        winner = player[0]
-        for player in self.players:
-            if player.points > winner.points:
-                winner = player
+        player1 = self.players[0]
+        player2 = self.players[1]
+        if player1.points < 15 and player2.points < 15:
+            raise ValueError(f"Game has not finished, no players have reached {self.max_points} points")
+        
+        if player1.points > player2.points:
+            winner = self.players[0]
+        elif player1.points < player2.points:
+            winner = self.players[1]
+        else:
+            if len(player1.hand) < len(player2.hand):
+                winner = player1
+            elif len(player1.hand) > len(player2.hand):
+                winner = player2
+            else:
+                winner = None # The game ended in a draw
         return winner
     
-    # def collect_tokens(self, tokens: dict[Token, int]):
-    #     """Updates the player and board when a player is collecting tokens.
+    def replace_card(self, board: Board, card: Card):
+        """Replace a card with another of its corresponding tier.
         
-    #     Args:
-    #         tokens (dict[Token, int]): A dictionary of the tokens the player will collect.
-    #     """
-    #     self.board.remove_tokens(tokens)
-    #     self.current_player.collect_tokens(tokens)
+        Args:
+            board (Board): The board object
+            card (Card): The card to be replaced
+
+        Return:
+            Card: The new card
+        """
+        # board remove card
+        board.remove_card(card)
+        # board add new card
+        try:
+            return board.add_new_card(card.tier-1)
+        except:
+            print(f"No more tier {card.tier} cards in the deck, could not replace.")
+            return None
+
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]):
+        """Perform the 'collect tokens' move.
+        
+        Args:
+            player (Player): The player that is collecting tokens
+            board (Board): The board object
+            tokens (Token): The tokens the player is collecting
+            returning (dict[Token, int]): The tokens the player will return as part of this move
+        """
+        # player collect tokens
+        player.collect_tokens(tokens)
+        # board remove tokens
+        board.remove_tokens(tokens)
+
+        # player remove excess tokens
+        player.remove_tokens(returning)
+        # board collect excess tokens
+        board.recieve_tokens(returning)
+
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]):
+        """Perform the 'reserve card' move.
+        
+        Args:
+            player (Player): The player that is reserving a card
+            board (Board): The board object
+            card (Card): The card the player is reserving
+            returning (dict[Token, int]): The tokens the player will return as part of this move
+        """
+        if len(player.reserved_cards) >= 3:
+            raise ValueError("A player cannot have more than 3 cards reserved at once.")
+        
+        # player collect card to reserved hand
+        player.reserve_card(card)
+
+        # board replace card
+        self.replace_card(board, card)
+
+        # collect yellow token. collect_token should cover all the steps for this
+        if (board.available_tokens[Token.YELLOW] > 0):
+            self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
+
+    def buy_card(self, player: Player, board: Board, card: Card):
+        """Perform the 'buy card' move.
+        
+        Args:
+            player (Player): The player that is buying a card
+            board (Board): The board object
+            card (Card): The card the player is buying
+        """
+        # calculate effective price of card given players tokens and bonuses
+        real_price = player.calculate_real_price(card)
+
+        # player remove tokens
+        player.remove_tokens(real_price)
+
+        # board collect tokens
+        board.recieve_tokens(real_price)
+
+        # player collect card to hand
+        player.collect_card(card)
+
+        # board replace card
+        if card in player.reserved_cards:
+            player.remove_reserved_card(card)
+        else:
+            self.replace_card(board, card)
 
 
+    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player):
+        """Debugging method to calculate the number of tokens in the game to make sure it is consistent."""
+        num_tokens = 0
+        num_tokens += sum(board.available_tokens.values())
+        num_tokens += sum(player1.tokens.values())
+        num_tokens += sum(player2.tokens.values())
 
+        tokens = board.available_tokens
+        for token, _ in tokens.items():
+            tokens[token] += player1.tokens[token]
+            tokens[token] += player2.tokens[token]
+        return tokens, num_tokens
