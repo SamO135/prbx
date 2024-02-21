@@ -2,7 +2,7 @@ import pytest
 from prbx_project.card import Card
 from prbx_project.game_token import Token
 from prbx_project.player import Player
-from prbx_project.game import Game
+from prbx_project.gamestate import GameState
 from prbx_project.board import Board
 
 
@@ -38,5 +38,5 @@ def test_game_setup():
     """Game setup for a 2 player game."""
     player1 = Player(name="player1")
     player2 = Player(name="player2")
-    game = Game(board=Board(), players=[player1, player2])
+    game = GameState(board=Board(), players=[player1, player2])
     return game

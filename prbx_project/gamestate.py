@@ -4,7 +4,7 @@ from prbx_project.player import Player
 from prbx_project.card import Card
 from prbx_project.game_token import Token
 
-class Game(BaseModel):
+class GameState(BaseModel):
     """A class representing the entire gamestate."""
 
     board: Board
@@ -19,7 +19,7 @@ class Game(BaseModel):
         self.current_player = self.players[0]
 
 
-    def is_over(self):
+    def is_over(self) -> bool:
         """Checks if the game has ended.
         
         Return:
@@ -33,7 +33,7 @@ class Game(BaseModel):
         return False
     
     # Still need to implement the logic for the case where 2 people finish on the same turn and have the same number of points
-    def get_winner(self):
+    def get_winner(self) -> Player:
         """Gets the winner of the game.
         
         Return:
@@ -56,7 +56,7 @@ class Game(BaseModel):
                 winner = None # The game ended in a draw
         return winner
     
-    def replace_card(self, board: Board, card: Card):
+    def replace_card(self, board: Board, card: Card)  -> (Card | None):
         """Replace a card with another of its corresponding tier.
         
         Args:
@@ -75,7 +75,7 @@ class Game(BaseModel):
             print(f"No more tier {card.tier} cards in the deck, could not replace.")
             return None
 
-    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]):
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int])  -> None:
         """Perform the 'collect tokens' move.
         
         Args:
@@ -94,7 +94,7 @@ class Game(BaseModel):
         # board collect excess tokens
         board.recieve_tokens(returning)
 
-    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]):
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]) -> None:
         """Perform the 'reserve card' move.
         
         Args:
@@ -116,7 +116,7 @@ class Game(BaseModel):
         if (board.available_tokens[Token.YELLOW] > 0):
             self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
-    def buy_card(self, player: Player, board: Board, card: Card):
+    def buy_card(self, player: Player, board: Board, card: Card) -> None:
         """Perform the 'buy card' move.
         
         Args:
@@ -142,8 +142,21 @@ class Game(BaseModel):
         else:
             self.replace_card(board, card)
 
+    def play_move(self, move: dict):
+        match move["move_type"]:
+                case "buy_card":
+                    card: Card = move["card"]
+                    self.buy_card(self.current_player, self.board, card)
+                case "reserve_card":
+                    card: Card = move["card"]
+                    self.reserve_card(self.current_player, self.board, card, move["returning"])
+                case "collect_tokens":
+                    tokens: dict[Token, int] = move["tokens"]
+                    self.collect_tokens(self.current_player, self.board, tokens, move["returning"])
+        return self
 
-    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player):
+
+    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player) -> tuple[dict[Token, int], int]:
         """Debugging method to calculate the number of tokens in the game to make sure it is consistent."""
         num_tokens = 0
         num_tokens += sum(board.available_tokens.values())

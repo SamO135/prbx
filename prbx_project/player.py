@@ -55,7 +55,7 @@ class Player(BaseModel):
         token_collection_moves += [{token: 1 for token in combo} for combo in combinations(collectable_tokens, 3)]
         return token_collection_moves
 
-    def get_possible_moves(self, available_tokens: dict[Token, int], available_cards: list[Card]):
+    def get_possible_moves(self, available_tokens: dict[Token, int], available_cards: list[Card]) -> list[dict]:
         """Gets all the possible moves the player can make on their turn.
         
         Args:
@@ -63,7 +63,7 @@ class Player(BaseModel):
             available_cards (list[Card]): A list of all the cards on the board
             
         Return:
-            A dictionary of all the possible moves the player can make on their turn
+            A list of all the possible moves the player can make on their turn
         """
         buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
         # buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": tokens} for card in buyable_cards for tokens in ]
@@ -80,7 +80,7 @@ class Player(BaseModel):
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
-    def select_random_move(self, possible_moves):
+    def select_random_move(self, possible_moves: list[dict]) ->  dict:
         """Selects a random move from the possible list of moves the player can perform on their turn.
         
         Args:
@@ -88,7 +88,7 @@ class Player(BaseModel):
             available_cards (list[Card]): A list of all the cards on the board
             
         Return:
-            A tuple of the move and the category of the move
+            A dictionary detailing the move
         """
         move = random.choice(possible_moves)
         return move
@@ -114,7 +114,7 @@ class Player(BaseModel):
             if self.tokens[token] < 0:
                 raise ValueError("Player cannot have negative tokens.")
 
-    def collect_card(self, card: Card):
+    def collect_card(self, card: Card) -> None:
         """Adds a card to hand. Collects the bonus and points.
         
         Args:
@@ -125,7 +125,7 @@ class Player(BaseModel):
         self.points += card.points
 
 
-    def reserve_card(self, card):
+    def reserve_card(self, card: Card) -> None:
         """Adds a card to reserved cards.
         
         Args:
@@ -135,7 +135,7 @@ class Player(BaseModel):
             raise ValueError("A player cannot have more than 3 cards reserved at once.")
         self.reserved_cards += [card]
 
-    def remove_reserved_card(self, card):
+    def remove_reserved_card(self, card: Card) -> None:
         """Removes a card from reserved cards.
         
         Args:

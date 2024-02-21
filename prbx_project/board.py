@@ -17,7 +17,7 @@ class Board(BaseModel):
         super().__init__(*args, **kwargs)
         self.available_cards: list[Card] = [self.all_cards[tier].pop(random.randrange(len(self.all_cards[tier]))) for _ in range(4) for tier in range(3)] # randomly select 4 cards from each tier of cards
 
-    def remove_tokens(self, tokens: dict[Token, int]):
+    def remove_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Removes tokens from the board.
         
         Args:
@@ -35,7 +35,7 @@ class Board(BaseModel):
                 self.available_tokens[token] -= amount
         return self.available_tokens
     
-    def recieve_tokens(self, tokens: dict[Token, int]):
+    def recieve_tokens(self, tokens: dict[Token, int]) -> dict[Token, int]:
         """Adds tokens to the board.
         
         Args:
@@ -51,7 +51,7 @@ class Board(BaseModel):
                 self.available_tokens[token] += amount
         return self.available_tokens
 
-    def remove_card(self, card: Card):
+    def remove_card(self, card: Card) -> list[Card]:
         """Remove card from the board.
         
         Args:
@@ -64,7 +64,7 @@ class Board(BaseModel):
         self.available_cards.remove(card)
         return self.available_cards
 
-    def add_new_card(self, tier: int):
+    def add_new_card(self, tier: int) -> Card:
         """Add a new card to the board.
         
         Args:
