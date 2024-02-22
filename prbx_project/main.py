@@ -26,12 +26,17 @@ def play_round(current_node: Node):
                 break
             else:
                 print(f"NO LEGAL MOVES FOR {current_node.gamestate.current_player.name}")
+            current_node.gamestate.next_player()
             continue
 
         # Play move
-        current_node.gamestate.play_move(player_move)
+        try:
+            current_node.gamestate.play_move(player_move)
+        except:
+            pass
         current_node = Node(parent=None, action=player_move, gamestate=current_node.gamestate, children=[], value=0, num_visits=0)
 
+        # Enumerate children for initial node of MCTS
         if current_node.gamestate.current_player.name == "mcts_agent":
             current_node = expansion(current_node)
     return current_node
