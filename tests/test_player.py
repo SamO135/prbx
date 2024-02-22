@@ -16,7 +16,7 @@ def test_player_init():
     assert p.bonuses == {Token.RED: 0, Token.BLUE: 0, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}
 
 
-def test_get_buyable_cards(test_card_set, test_player_tokens):
+def test_get_buyable_cards(test_card_set: list[Card], test_player_tokens: dict[Token, int]):
     p = Player(name="test", tokens=test_player_tokens)
 
     buyable_cards = p.get_buyable_cards(cards=test_card_set)
@@ -47,7 +47,7 @@ def test_get_token_collection_moves():
                                       {Token.BLACK: 1, Token.GREEN: 1, Token.WHITE: 1}]
 
 
-def test_get_possible_moves(test_card_set):
+def test_get_possible_moves(test_card_set: list[Card]):
     p = Player(name="test")
     board = Board()
     board.available_tokens = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 5}
@@ -134,7 +134,7 @@ def test_remove_tokens():
         p.remove_tokens(tokens={Token.RED: 2})
 
 
-def test_reserve_card(test_card_set):
+def test_reserve_card(test_card_set: list[Card]):
     p = Player(name="test")
     p.reserve_card(test_card_set[0])
     assert p.reserved_cards == [test_card_set[0]]
@@ -147,7 +147,7 @@ def test_reserve_card(test_card_set):
         p.reserve_card(test_card_set[3])
 
 
-def test_remove_reserved_card(test_card_set):
+def test_remove_reserved_card(test_card_set: list[Card]):
     p = Player(name="test")
     p.reserved_cards = [test_card_set[0], test_card_set[1]]
     p.remove_reserved_card(test_card_set[0])
@@ -161,7 +161,7 @@ def test_remove_reserved_card(test_card_set):
 #     pass
 
 
-def test_calculate_real_price(test_card_set):
+def test_calculate_real_price(test_card_set: list[Card]):
     card = test_card_set[0] # price={Token.RED: 2, Token.BLUE: 3, Token.GREEN: 2, Token.WHITE: 0, Token.BLACK: 0}
 
     p = Player(name="test", bonuses={Token.RED: 1, Token.BLUE: 2, Token.GREEN: 0, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0})

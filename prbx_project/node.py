@@ -4,8 +4,18 @@ from typing import Optional
 
 class Node(BaseModel):
     parent: Optional["Node"]
-    action: Optional[dict]
+    action: dict
     gamestate: GameState
-    children: list["Node"] = []
-    value: int = 0
-    num_visits: int = 0 
+    children: list["Node"]
+    value: int
+    num_visits: int
+
+    def calculate_value(self) -> None:
+        for player in self.gamestate.players:
+            if player == self.gamestate.current_player:
+                self.value +=  (player.points * 5)
+                self.value += sum(player.tokens.values())
+            else:
+                self.value -= (player.points * 5)
+                self.value -= sum(player.tokens.values())
+            
