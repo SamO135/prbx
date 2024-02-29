@@ -2,6 +2,7 @@ from prbx_project.node import Node
 from datetime import datetime, timedelta
 import copy
 import math
+import random
 
 
 def tree_policy(node: Node) -> float:
@@ -29,8 +30,9 @@ def expansion(current_node: Node) -> Node:
     available_tokens = current_node.gamestate.board.available_tokens
     available_cards = current_node.gamestate.board.available_cards
     possible_moves = current_node.gamestate.current_player.get_possible_moves(available_tokens, available_cards)
+    sampled_moves = sample_moves(possible_moves, k=10)
     children = []
-    for move in possible_moves:
+    for move in sampled_moves:
         gamestate_copy = copy.deepcopy(current_node.gamestate)
         new_gamestate = gamestate_copy.play_move(move, log=False)
         new_child = Node(parent=current_node, action=move, gamestate=new_gamestate, children=[], value=0, num_visits=0)
@@ -116,6 +118,32 @@ def select_move_with_mcts(current_node: Node):
     except:
         print(f"Error in other method: best_child={best_child}.")
         quit()
+
+def sample_moves(all_moves: list[dict], k: int) -> list[dict]:
+    """Sample a list of moves.
+    
+    Args:
+        all_moves (list[dict]): The list of possible moves to be sampled
+        k (int): The number of moves to sample
+        
+    Return:
+        list[dict]: The list of sampled moves"""
+    if k > len(all_moves):
+        k = len(all_moves)
+    weights = []
+    unique_sampled_moves = []
+    for move in all_moves:
+        if move["move_type"] == "buy_card":
+            weights.append(100)
+        else:
+            weights.append(1)
+    while len(unique_sampled_moves) < k:
+        sampled_moves = random.choices(all_moves, weights=weights, k=(k-len(unique_sampled_moves)))
+        for move in sampled_moves:
+            if move not in unique_sampled_moves:
+                unique_sampled_moves.append(move)
+
+    return unique_sampled_moves
 """
 -- SELECTION --
 while current_node has children

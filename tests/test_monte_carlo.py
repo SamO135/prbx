@@ -9,14 +9,21 @@ def test_selection(game_tree: Node):
     selected_node = selection(game_tree)
     assert selected_node == game_tree.children[0].children[0]
 
+# Add test for when len(possible_moves) < 10 (i.e. the number of moves to be sampled) - or should this test be done in 'test_sample_moves'?
 def test_expansion(game: GameState):
     node = Node(parent=None, action={}, gamestate=game, children=[], value=0, num_visits=0)
     new_node = expansion(node)
     possible_moves = game.current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards)
-    for index, move in enumerate(possible_moves):
-        assert move == node.children[index].action
+    assert len(new_node.children) == 10
+    
+    sampled_moves = [child.action for child in new_node.children]
+    unique_sampled_moves = []
+    for move in [child.action for child in new_node.children]:
+        if move not in unique_sampled_moves:
+            unique_sampled_moves.append(move)
+    assert sampled_moves == unique_sampled_moves
+
     new_node.children = []
-    assert new_node.gamestate == node.gamestate
     assert new_node == node
 
 def test_back_propagate(game_tree: Node):
@@ -43,3 +50,6 @@ def test_rollout(game_tree: Node):
     terminal_node = rollout(rollout_node)
     assert rollout_node.gamestate == rollout_node_copy.gamestate
     assert terminal_node.gamestate.is_over()
+
+def test_sample_moves():
+    pass
