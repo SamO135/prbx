@@ -4,7 +4,7 @@ from prbx_project.game_token import Token
 from prbx_project.player import Player
 from prbx_project.gamestate import GameState
 from prbx_project.board import Board
-
+from prbx_project.node import Node
 
 @pytest.fixture
 def test_card_set():
@@ -40,3 +40,16 @@ def test_game_setup():
     player2 = Player(name="player2")
     game = GameState(board=Board(), players=[player1, player2])
     return game
+
+
+@pytest.fixture
+def test_game_tree(test_game_setup: GameState):
+    """Example of a game tree being searched in mcts."""
+    root_node = Node(id = 1, parent=None, action={}, gamestate=test_game_setup, children=[], value=24, num_visits=4)
+    child1 = Node(id = 2, parent=root_node, action={}, gamestate=test_game_setup, children=[], value=7, num_visits=2)
+    child2 = Node(id = 3, parent=root_node, action={}, gamestate=test_game_setup, children=[], value=2, num_visits=1)
+    child3 = Node(id = 4, parent=root_node, action={}, gamestate=test_game_setup, children=[], value=5, num_visits=1)
+    child1_child = Node(id = 5, parent=child1, action={}, gamestate=test_game_setup, children=[], value=10, num_visits=1)
+    child1.children = [child1_child]
+    root_node.children = [child1, child2, child3]
+    return root_node

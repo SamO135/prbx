@@ -56,7 +56,7 @@ class GameState(BaseModel):
                 winner = None # The game ended in a draw
         return winner
     
-    def replace_card(self, board: Board, card: Card)  -> (Card | None):
+    def replace_card(self, board: Board, card: Card, log: bool = False)  -> (Card | None):
         """Replace a card with another of its corresponding tier.
         
         Args:
@@ -72,7 +72,8 @@ class GameState(BaseModel):
         try:
             return board.add_new_card(card.tier-1)
         except:
-            print(f"No more tier {card.tier} cards in the deck, could not replace.")
+            if log:
+                print(f"No more tier {card.tier} cards in the deck, could not replace.", end=" ")
             return None
 
     def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int])  -> None:
@@ -94,7 +95,7 @@ class GameState(BaseModel):
         # board collect excess tokens
         board.recieve_tokens(returning)
 
-    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]) -> None:
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int], log: bool = False) -> None:
         """Perform the 'reserve card' move.
         
         Args:
@@ -110,13 +111,15 @@ class GameState(BaseModel):
         player.reserve_card(card)
 
         # board replace card
-        self.replace_card(board, card)
+        new_card =  self.replace_card(board, card, log)
+        if new_card is None and log:
+            print(f"{player.name} tried to reserve a card.")
 
         # collect yellow token. collect_token should cover all the steps for this
         if (board.available_tokens[Token.YELLOW] > 0):
             self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
-    def buy_card(self, player: Player, board: Board, card: Card) -> None:
+    def buy_card(self, player: Player, board: Board, card: Card, log: bool = False) -> None:
         """Perform the 'buy card' move.
         
         Args:
@@ -140,16 +143,18 @@ class GameState(BaseModel):
         if card in player.reserved_cards:
             player.remove_reserved_card(card)
         else:
-            self.replace_card(board, card)
+            new_card = self.replace_card(board, card, log)
+            if new_card is None and log:
+                print(f"{player.name} tried to buy a card.")
 
-    def play_move(self, move: dict):
+    def play_move(self, move: dict, log: bool = False):
         match move["move_type"]:
                 case "buy_card":
                     card: Card = move["card"]
-                    self.buy_card(self.current_player, self.board, card)
+                    self.buy_card(self.current_player, self.board, card, log)
                 case "reserve_card":
                     card: Card = move["card"]
-                    self.reserve_card(self.current_player, self.board, card, move["returning"])
+                    self.reserve_card(self.current_player, self.board, card, move["returning"], log)
                 case "collect_tokens":
                     tokens: dict[Token, int] = move["tokens"]
                     self.collect_tokens(self.current_player, self.board, tokens, move["returning"])

@@ -13,6 +13,8 @@ def play_round(current_node: Node):
             # player_move = current_player.select_random_move(all_moves)
             if current_player.name == "mcts_agent":
                 player_move = select_move_with_mcts(current_node)
+                # all_moves = current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
+                # player_move = current_player.select_random_move(all_moves)
             elif current_player.name == "random_agent":
                 all_moves = current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
                 player_move = current_player.select_random_move(all_moves)
@@ -31,7 +33,7 @@ def play_round(current_node: Node):
 
         # Play move
         try:
-            current_node.gamestate.play_move(player_move)
+            current_node.gamestate.play_move(player_move, log=True)
         except:
             pass
         current_node = Node(parent=None, action=player_move, gamestate=current_node.gamestate, children=[], value=0, num_visits=0)

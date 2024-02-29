@@ -32,7 +32,7 @@ def expansion(current_node: Node) -> Node:
     children = []
     for move in possible_moves:
         gamestate_copy = copy.deepcopy(current_node.gamestate)
-        new_gamestate = gamestate_copy.play_move(move)
+        new_gamestate = gamestate_copy.play_move(move, log=False)
         new_child = Node(parent=current_node, action=move, gamestate=new_gamestate, children=[], value=0, num_visits=0)
         children.append(new_child)
     current_node.children = children
@@ -40,39 +40,40 @@ def expansion(current_node: Node) -> Node:
 
 # random playout simulation
 def rollout(current_node: Node) -> Node:
-    while not current_node.gamestate.is_over():
-        for _ in current_node.gamestate.players:
+    game = copy.deepcopy(current_node.gamestate)
+    while not game.is_over():
+        for _ in game.players:
             try:
-                all_moves = current_node.gamestate.current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
-                player_move = current_node.gamestate.current_player.select_random_move(all_moves)
-                current_node.gamestate.current_player.locked = False
+                all_moves = game.current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards)
+                player_move = game.current_player.select_random_move(all_moves)
+                game.current_player.locked = False
             except Exception as e:
                 # print(e)
-                current_node.gamestate.current_player.locked = True
-                if (all([player.locked for player in current_node.gamestate.players])):
+                game.current_player.locked = True
+                if (all([player.locked for player in game.players])):
                     # print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
-                    current_node.gamestate.force_end = True
+                    game.force_end = True
                     break
                 # else:
-                    # print(f"NO LEGAL MOVES FOR {current_node.gamestate.current_player.name}")
-                current_node.gamestate.next_player()
+                    # print(f"NO LEGAL MOVES FOR {game.current_player.name}")
+                game.next_player()
                 continue
 
             # Play move
             try:
-                current_node.gamestate.play_move(player_move)
-            except:
-                pass
-            current_node = Node(parent=None, action=player_move, gamestate=current_node.gamestate, children=[], value=0, num_visits=0)
+                game.play_move(player_move, log=False)
+            except Exception as e:
+                print(f"Couldn't play the move. Error: {e}")
+            current_node = Node(parent=None, action=player_move, gamestate=game, children=[], value=0, num_visits=0)
 
             # Enumerate children for initial node of MCTS
-            # if current_node.gamestate.current_player.name == "mcts_agent":
+            # if game.current_player.name == "mcts_agent":
             #     current_node = expansion(current_node)
     current_node.calculate_value()
     return current_node
 
 def back_propagate(current_node: Node, terminal_value: int) -> Node:
-    rollout_node = copy.deepcopy(current_node)
+    rollout_node = current_node
     while current_node:
         current_node.value += terminal_value
         current_node.num_visits += 1
@@ -99,7 +100,7 @@ def select_move_with_mcts(current_node: Node):
     current_node.gamestate.players.reverse()
     # start_time = datetime.utcnow()
     # while datetime.utcnow() - start_time < timedelta(seconds=0.5):
-    for _ in range(5):
+    for _ in range(10):
         current_node = mcts(current_node)
 
 
