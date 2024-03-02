@@ -1,4 +1,5 @@
 from prbx_project.node import Node
+from prbx_project.player import Player
 from datetime import datetime, timedelta
 import copy
 import math
@@ -8,7 +9,8 @@ import random
 def tree_policy(node: Node) -> float:
     try:
         return (node.value + 2 * (math.log(node.parent.num_visits) / node.num_visits))
-    except:
+    except Exception as e:
+        # print(type(e))
         return 1000
 
 def selection(current_node: Node) -> Node:
@@ -30,9 +32,9 @@ def expansion(current_node: Node) -> Node:
     available_tokens = current_node.gamestate.board.available_tokens
     available_cards = current_node.gamestate.board.available_cards
     possible_moves = current_node.gamestate.current_player.get_possible_moves(available_tokens, available_cards)
-    sampled_moves = sample_moves(possible_moves, k=10)
+    # sampled_moves = sample_moves(possible_moves, k=10)
     children = []
-    for move in sampled_moves:
+    for move in possible_moves:
         gamestate_copy = copy.deepcopy(current_node.gamestate)
         new_gamestate = gamestate_copy.play_move(move, log=False)
         new_child = Node(parent=current_node, action=move, gamestate=new_gamestate, children=[], value=0, num_visits=0)
@@ -41,7 +43,7 @@ def expansion(current_node: Node) -> Node:
     return current_node
 
 # random playout simulation
-def rollout(current_node: Node) -> Node:
+def rollout(current_node: Node, pov: Player) -> Node:
     game = copy.deepcopy(current_node.gamestate)
     while not game.is_over():
         for _ in game.players:
@@ -71,7 +73,7 @@ def rollout(current_node: Node) -> Node:
             # Enumerate children for initial node of MCTS
             # if game.current_player.name == "mcts_agent":
             #     current_node = expansion(current_node)
-    current_node.calculate_value()
+    current_node.calculate_value(pov)
     return current_node
 
 def back_propagate(current_node: Node, terminal_value: int) -> Node:
@@ -89,9 +91,10 @@ def mcts(current_node: Node) -> Node:
     # expansion
     if next_node.num_visits > 0:
         next_node = expansion(next_node)
+        next_node = selection(next_node)
 
     # rollout
-    terminal_node = rollout(next_node)
+    terminal_node = rollout(next_node, current_node.gamestate.current_player)
 
     # backpropagation
     next_node = back_propagate(next_node, terminal_node.value)
@@ -102,13 +105,13 @@ def select_move_with_mcts(current_node: Node):
     current_node.gamestate.players.reverse()
     # start_time = datetime.utcnow()
     # while datetime.utcnow() - start_time < timedelta(seconds=0.5):
-    for _ in range(10):
+    for i in range(len(current_node.children)):
         current_node = mcts(current_node)
 
 
     # calculate best child
+    max_tree_policy_value = -1000
     for child in current_node.children:
-        max_tree_policy_value = -1000
         tree_policy_value = tree_policy(child)
         if tree_policy_value > max_tree_policy_value:
             best_child = child
