@@ -158,7 +158,7 @@ class GameState(BaseModel):
                 case "collect_tokens":
                     tokens: dict[Token, int] = move["tokens"]
                     self.collect_tokens(self.current_player, self.board, tokens, move["returning"])
-        self.next_player()
+        # self.next_player()
         return self
     
     def next_player(self):

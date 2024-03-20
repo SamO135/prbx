@@ -1,0 +1,6 @@
+simulations: 20
+player1_alg: "random"
+player2_alg: "mcts_vanilla"
+num_samples: 5
+sample_weights: [1, 1, 1]
+mcts_budget: 5  # number of random playouts

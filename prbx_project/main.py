@@ -4,8 +4,7 @@ from prbx_project.board import Board
 from prbx_project.node import Node
 from prbx_project.monte_carlo import select_move_with_mcts, expansion
 from collections import Counter
-import sys
-import copy
+import yaml
 
 def play_round(current_node: Node):
     for current_player in current_node.gamestate.players:
@@ -16,7 +15,7 @@ def play_round(current_node: Node):
                     all_moves = current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
                     player_move = current_player.select_random_move(all_moves)
                 case "mcts_vanilla":
-                    player_move = select_move_with_mcts(current_node)
+                    player_move = select_move_with_mcts(current_node, config["mcts_budget"])
             current_node.gamestate.current_player.locked = False
         except Exception as e:
             print(e)
@@ -33,35 +32,36 @@ def play_round(current_node: Node):
         # Play move
         try:
             current_node.gamestate.play_move(player_move, log=True)
+            current_node.gamestate.next_player()
         except:
             pass
         current_node = Node(parent=None, action=player_move, gamestate=current_node.gamestate, children=[], value=0, num_visits=0)
 
         # Enumerate children for initial node of MCTS
         if current_node.gamestate.current_player.name == "mcts_vanilla":
-            current_node = expansion(current_node)
+            current_node = expansion(current_node, num_samples=config["num_samples"], weights=config["sample_weights"])
     return current_node
 
 
 if __name__ == "__main__":
-    simulations = int(sys.argv[1])
-    player1_alg = sys.argv[2]
-    player2_alg = sys.argv[3]
+    with open("prbx_project/config.yaml") as file:
+        config = yaml.safe_load(file)
 
     winner_list = []
     draws = 0
     avg_num_turns = 0
     discarded_games = 0
-    for i in range(simulations):
-        player1 = Player(name=player1_alg)
-        player2 = Player(name=player2_alg)
+    for i in range(config["simulations"]):
+        print(f"-- Simulation {i+1} --")
+        player1 = Player(name=config["player1_alg"])
+        player2 = Player(name=config["player2_alg"])
 
         gamestate = GameState(board=Board(), players=[player1, player2])
 
         # GENERAL GAMEPLAY LOOP
         turn_count = 0
         current_node = Node(parent=None, action={}, gamestate=gamestate, children=[], value=0, num_visits=0) # root node
-        current_node = expansion(current_node)
+        current_node = expansion(current_node, num_samples=config["num_samples"], weights=config["sample_weights"])
         while (not gamestate.is_over()):
             current_node = play_round(current_node)
             turn_count += 1
@@ -77,28 +77,25 @@ if __name__ == "__main__":
                 draws += 1
             else:
                 winner_list.append(winner.name)
-                # print()
-                # print(f"Winner after {turn_count} turns: {winner.name}")
-                # print(f"{gamestate.players[0].name}: {gamestate.players[0].points} points")
-                # print(f"{gamestate.players[1].name}: {gamestate.players[1].points} points")
+                print(f"winner: {winner.name}")
         else:
             discarded_games += 1
-        print(f"-- Simulation {i} --")
 
 
 
 # Print statistics
+print()
 win_counts = Counter(winner_list)
 if len(win_counts) == 1:
-    if player1_alg in win_counts.keys():
-        win_counts[player2_alg] = 0
+    if config["player1_alg"] in win_counts.keys():
+        win_counts[config["player2_alg"]] = 0
     else:
-        win_counts[player1_alg] = 0
+        win_counts[config["player1_alg"]] = 0
 
 for alg, wins in win_counts.items():
     print(f"{alg} won {wins} time{'s' if wins !=1 else ''}")
 print()
 
-avg_num_turns = avg_num_turns / simulations
+avg_num_turns = avg_num_turns / (config["simulations"] - discarded_games)
 print(f"Average number of turns per simulation: {avg_num_turns}")
 print(f"Number of discarded games: {discarded_games}")
