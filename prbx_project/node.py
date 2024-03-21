@@ -12,6 +12,7 @@ class Node(BaseModel):
     num_visits: int
 
     def calculate_value(self, pov: Player) -> None:
+        self.value = 0
         for player in self.gamestate.players:
             if player.name == pov.name:
                 self.value +=  (player.points * 5)

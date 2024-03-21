@@ -4,7 +4,11 @@ from datetime import datetime, timedelta
 import copy
 import math
 import random
+import yaml
 
+
+with open("prbx_project/config.yaml") as file:
+        config = yaml.safe_load(file)
 
 def tree_policy(node: Node) -> float:
     try:
@@ -28,14 +32,14 @@ def selection(current_node: Node) -> Node:
             quit()
     return current_node
 
-def expansion(current_node: Node, num_samples: int=-1, weights: list[int]=[1, 1, 1]) -> Node:
-    if num_samples < -1 or num_samples == 0:
+def expansion(current_node: Node, sample_size: int=-1, weights: list[int]=[1, 1, 1]) -> Node:
+    if sample_size < -1 or sample_size == 0:
         raise ValueError("Invalid number of samples chosen for expansion.")
     available_tokens = current_node.gamestate.board.available_tokens
     available_cards = current_node.gamestate.board.available_cards
-    possible_moves = current_node.gamestate.current_player.get_possible_moves(available_tokens, available_cards)
-    if num_samples > 0:
-        sampled_moves = sample_moves(possible_moves, k=num_samples, weights=weights)
+    possible_moves = current_node.gamestate.current_player.get_possible_moves(available_tokens, available_cards, reduced=config["reduced"])
+    if sample_size > 0:
+        sampled_moves = sample_moves(possible_moves, k=sample_size, weights=weights)
     else:
         sampled_moves = possible_moves
     children = []
@@ -53,19 +57,16 @@ def rollout(current_node: Node, pov: Player) -> Node:
     game = copy.deepcopy(current_node.gamestate)
     while not game.is_over():
         for _ in game.players:
+            # Select move
             try:
-                all_moves = game.current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards)
+                all_moves = game.current_player.get_possible_moves(game.board.available_tokens, game.board.available_cards, reduced=config["reduced"])
                 player_move = game.current_player.select_random_move(all_moves)
                 game.current_player.locked = False
             except Exception as e:
-                # print(e)
                 game.current_player.locked = True
                 if (all([player.locked for player in game.players])):
-                    # print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
                     game.force_end = True
                     break
-                # else:
-                    # print(f"NO LEGAL MOVES FOR {game.current_player.name}")
                 game.next_player()
                 continue
 
@@ -109,7 +110,7 @@ def mcts(current_node: Node) -> Node:
 
 def select_move_with_mcts(current_node: Node, mcts_budget: int):
     # if current_node.children == []:
-    possible_moves = current_node.gamestate.current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
+    possible_moves = current_node.gamestate.current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards, reduced=config["reduced"])
     if len(possible_moves) == 0:
         raise ValueError("Cannot select a move from a node with no children")
     current_node = copy.deepcopy(current_node)
@@ -160,7 +161,7 @@ def sample_moves(all_moves: list[dict], k: int, weights: list[int]=[1, 1, 1]) ->
             w.append(weights[0])
         elif move["move_type"] == "reserve_card":
             w.append(weights[1])
-        else:
+        else: # move_type = collect_tokens
             w.append(weights[2])
     while len(unique_sampled_moves) < k:
         sampled_moves = random.choices(all_moves, weights=w, k=(k-len(unique_sampled_moves)))

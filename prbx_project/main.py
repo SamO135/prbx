@@ -12,13 +12,13 @@ def play_round(current_node: Node):
         try:
             match current_player.name:
                 case "random":
-                    all_moves = current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards)
+                    all_moves = current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards, reduced=config["reduced"])
                     player_move = current_player.select_random_move(all_moves)
                 case "mcts_vanilla":
                     player_move = select_move_with_mcts(current_node, config["mcts_budget"])
             current_node.gamestate.current_player.locked = False
         except Exception as e:
-            print(e)
+            # print(e)
             current_node.gamestate.current_player.locked = True
             if (all([player.locked for player in current_node.gamestate.players])):
                 print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
@@ -39,7 +39,7 @@ def play_round(current_node: Node):
 
         # Enumerate children for initial node of MCTS
         if current_node.gamestate.current_player.name == "mcts_vanilla":
-            current_node = expansion(current_node, num_samples=config["num_samples"], weights=config["sample_weights"])
+            current_node = expansion(current_node, sample_size=config["sample_size"], weights=config["sample_weights"])
     return current_node
 
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         # GENERAL GAMEPLAY LOOP
         turn_count = 0
         current_node = Node(parent=None, action={}, gamestate=gamestate, children=[], value=0, num_visits=0) # root node
-        current_node = expansion(current_node, num_samples=config["num_samples"], weights=config["sample_weights"])
+        current_node = expansion(current_node, sample_size=config["sample_size"], weights=config["sample_weights"])
         while (not gamestate.is_over()):
             current_node = play_round(current_node)
             turn_count += 1

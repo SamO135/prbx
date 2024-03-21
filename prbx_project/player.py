@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from prbx_project.card import Card
 from prbx_project.game_token import Token
 from itertools import combinations
+from collections import Counter
 import random
 import copy
 
@@ -55,7 +56,7 @@ class Player(BaseModel):
         token_collection_moves += [{token: 1 for token in combo} for combo in combinations(collectable_tokens, 3)]
         return token_collection_moves
 
-    def get_possible_moves(self, available_tokens: dict[Token, int], available_cards: list[Card]) -> list[dict]:
+    def get_possible_moves(self, available_tokens: dict[Token, int], available_cards: list[Card], reduced=True) -> list[dict]:
         """Gets all the possible moves the player can make on their turn.
         
         Args:
@@ -67,7 +68,9 @@ class Player(BaseModel):
         """
         buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
         # buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": tokens} for card in buyable_cards for tokens in ]
-        buy_card_moves = [{"move_type": "buy_card", "card": card} for card in buyable_cards]
+        buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": self.calculate_real_price(card)} for card in buyable_cards]
+        if not reduced:
+            buy_card_moves += [{"move_type": "buy_card", "card": card, "payment": payment} for card in buyable_cards for payment in self.get_payment_combinations(self.calculate_real_price(card), self.tokens[Token.YELLOW]-self.calculate_real_price(card)[Token.YELLOW])]
 
         reservable_cards = available_cards if len(self.reserved_cards) < 3 else [] # + 3 face down cards
         returnable_tokens = [{token:  1} for token in self.tokens if self.tokens[token] > 0] if sum(self.tokens.values()) + 1 > 10 else [{}]
@@ -198,6 +201,33 @@ class Player(BaseModel):
         real_price[Token.YELLOW] = num_yellows_needed
 
         return real_price
+    
+    def get_payment_combinations(self, tokens: dict[Token, int], num_yellows: int) -> list[dict[Token, int]]:
+        """Calculate all the combinations of tokens that can be used to pay for a card if a player were to 
+        use any of their yellow tokens in place of any other token.
+
+        Args:
+            tokens (dict[Token, int]): the tokens to calculate combinations of
+            num_yellows (int): the maximum number of yellow tokens that could be used in the payment
+
+        Return:
+            list[dict[Token, int]]: a list of all possible ways a card can be payed for given the price and the number of yellow tokens potentially used.
+        """
+        tokens_copy = copy.deepcopy(tokens)
+        tokens_copy.pop(Token.YELLOW)
+        tokens_flat_list = [token for token, amount in tokens_copy.items() for _ in range(amount)]
+        unique_combos = []
+        for i in range(1, num_yellows+1):
+            combos = combinations(tokens_flat_list, max(len(tokens_flat_list)-(i), 0))
+            for j in combos:
+                if j not in unique_combos:
+                    payment = dict(Counter(j))
+                    payment[Token.YELLOW] = i
+                    for token in Token:
+                        if token not in payment:
+                            payment[token] = 0
+                    unique_combos.append(payment)
+        return unique_combos
     
     # def get_payment_combinations(self, real_price: dict[Token, int]):
     #     real_price_copy: dict[Token, int] = copy.deepcopy(real_price)

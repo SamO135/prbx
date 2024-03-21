@@ -119,7 +119,7 @@ class GameState(BaseModel):
         if (board.available_tokens[Token.YELLOW] > 0):
             self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
-    def buy_card(self, player: Player, board: Board, card: Card, log: bool = False) -> None:
+    def buy_card(self, player: Player, board: Board, card: Card, payment: dict[Token, int], log: bool = False) -> None:
         """Perform the 'buy card' move.
         
         Args:
@@ -128,13 +128,13 @@ class GameState(BaseModel):
             card (Card): The card the player is buying
         """
         # calculate effective price of card given players tokens and bonuses
-        real_price = player.calculate_real_price(card)
+        # real_price = player.calculate_real_price(card)
 
         # player remove tokens
-        player.remove_tokens(real_price)
+        player.remove_tokens(payment)
 
         # board collect tokens
-        board.recieve_tokens(real_price)
+        board.recieve_tokens(payment)
 
         # player collect card to hand
         player.collect_card(card)
@@ -151,7 +151,7 @@ class GameState(BaseModel):
         match move["move_type"]:
                 case "buy_card":
                     card: Card = move["card"]
-                    self.buy_card(self.current_player, self.board, card, log)
+                    self.buy_card(self.current_player, self.board, card, move["payment"], log)
                 case "reserve_card":
                     card: Card = move["card"]
                     self.reserve_card(self.current_player, self.board, card, move["returning"], log)
