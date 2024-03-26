@@ -20,18 +20,19 @@ def play_round(current_node: Node):
         except Exception as e:
             # print(e)
             current_node.gamestate.current_player.locked = True
-            if (all([player.locked for player in current_node.gamestate.players])):
-                print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
-                current_node.gamestate.force_end = True
-                break
-            else:
-                print(f"NO LEGAL MOVES FOR {current_node.gamestate.current_player.name}")
+            if config["logs"]:
+                if (all([player.locked for player in current_node.gamestate.players])):
+                    print("NO LEGAL MOVES FOR EITHER PLAYER, FORCE ENDING GAME")
+                    current_node.gamestate.force_end = True
+                    break
+                else:
+                    print(f"NO LEGAL MOVES FOR {current_node.gamestate.current_player.name}")
             current_node.gamestate.next_player()
             continue
 
         # Play move
         try:
-            current_node.gamestate.play_move(player_move, log=True)
+            current_node.gamestate.play_move(player_move, log=config["logs"])
             current_node.gamestate.next_player()
         except:
             pass

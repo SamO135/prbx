@@ -152,7 +152,7 @@ def sample_moves(all_moves: list[dict], k: int, weights: list[int]=[1, 1, 1]) ->
         
     Return:
         list[dict]: The list of sampled moves"""
-    if k > len(all_moves):
+    if k >= len(all_moves):
         return all_moves
     w = []
     unique_sampled_moves = []

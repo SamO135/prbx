@@ -71,6 +71,9 @@ class Player(BaseModel):
         buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": self.calculate_real_price(card)} for card in buyable_cards]
         if not reduced:
             buy_card_moves += [{"move_type": "buy_card", "card": card, "payment": payment} for card in buyable_cards for payment in self.get_payment_combinations(self.calculate_real_price(card), self.tokens[Token.YELLOW]-self.calculate_real_price(card)[Token.YELLOW])]
+        unique_moves = []
+        [unique_moves.append(move) for move in buy_card_moves if move not in unique_moves]
+        buy_card_moves = unique_moves
 
         reservable_cards = available_cards if len(self.reserved_cards) < 3 else [] # + 3 face down cards
         returnable_tokens = [{token:  1} for token in self.tokens if self.tokens[token] > 0] if sum(self.tokens.values()) + 1 > 10 else [{}]
@@ -218,7 +221,7 @@ class Player(BaseModel):
         tokens_flat_list = [token for token, amount in tokens_copy.items() for _ in range(amount)]
         unique_combos = []
         for i in range(1, num_yellows+1):
-            combos = combinations(tokens_flat_list, max(len(tokens_flat_list)-(i), 0))
+            combos = combinations(tokens_flat_list, max(len(tokens_flat_list)-i, 0))
             for j in combos:
                 if j not in unique_combos:
                     payment = dict(Counter(j))
