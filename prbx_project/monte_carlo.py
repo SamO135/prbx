@@ -19,7 +19,7 @@ def tree_policy(node: Node) -> float:
 
 def selection(current_node: Node) -> Node:
     while current_node.children:
-        max_tree_policy_value = -1000
+        max_tree_policy_value = tree_policy(current_node.children[0]) - 1
         for child in current_node.children:
             tree_policy_value = tree_policy(child)
             if tree_policy_value > max_tree_policy_value:
@@ -115,14 +115,17 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int):
         raise ValueError("Cannot select a move from a node with no children")
     current_node = copy.deepcopy(current_node)
     current_node.gamestate.players.reverse()
-    # start_time = datetime.utcnow()
-    # while datetime.utcnow() - start_time < timedelta(seconds=0.5):
-    for i in range(mcts_budget):
-        current_node = mcts(current_node)
+    if config["time_limit"]:
+        start_time = datetime.utcnow()
+        while datetime.utcnow() - start_time < timedelta(seconds=mcts_budget):
+            current_node = mcts(current_node)
+    else:
+        for _ in range(mcts_budget):
+            current_node = mcts(current_node)
 
 
     # calculate best child
-    max_tree_policy_value = -1000
+    max_tree_policy_value = tree_policy(current_node.children[0]) - 1
     for child in current_node.children:
         tree_policy_value = tree_policy(child)
         if tree_policy_value > max_tree_policy_value:
@@ -134,7 +137,7 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int):
         if len(current_node.children) == 0:
             raise ValueError("Cannot select a move from an empty list")
         else:
-            print(e)
+            print(f"Error in 'select_move_with_mcts': {e}")
             quit()
         # print(f"number of children: {len(current_node.children)}")
         # print(current_node)

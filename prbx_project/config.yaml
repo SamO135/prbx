@@ -1,8 +1,16 @@
+# Number of simulations
 simulations: 100
+
+# Player algorithms
 player1_alg: "random"
 player2_alg: "mcts_vanilla"
+
+# MCTS parameters
 sample_size: 5
 sample_weights: [1, 1, 1] # [buy_card, reserve_card, collect_tokens]
-mcts_budget: 5  # number of random playouts
-reduced: False # whether to reduce the payment combinations (i.e. can yellow tokens be used any time (reduced=False), or only when a card cannot be bought without them (reduced=True))
+time_limit: True          # True = mcts_budget is time limit in seconds for search phase, False = mcts_budget is number of rollouts for search phase
+mcts_budget: 0.1          # Search phase budget (based on 'time' setting)
+
+# General simulations settings
+reduced: False            # whether to reduce the payment combinations (i.e. can yellow tokens be used any time (reduced=False), or only when a card cannot be bought without them (reduced=True))
 logs: True
