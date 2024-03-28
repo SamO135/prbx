@@ -4,7 +4,7 @@ from prbx_project.player import Player
 from prbx_project.card import Card
 from prbx_project.game_token import Token
 
-class Game(BaseModel):
+class GameState(BaseModel):
     """A class representing the entire gamestate."""
 
     board: Board
@@ -19,7 +19,7 @@ class Game(BaseModel):
         self.current_player = self.players[0]
 
 
-    def is_over(self):
+    def is_over(self) -> bool:
         """Checks if the game has ended.
         
         Return:
@@ -33,7 +33,7 @@ class Game(BaseModel):
         return False
     
     # Still need to implement the logic for the case where 2 people finish on the same turn and have the same number of points
-    def get_winner(self):
+    def get_winner(self) -> Player:
         """Gets the winner of the game.
         
         Return:
@@ -56,7 +56,7 @@ class Game(BaseModel):
                 winner = None # The game ended in a draw
         return winner
     
-    def replace_card(self, board: Board, card: Card):
+    def replace_card(self, board: Board, card: Card, log: bool = False)  -> (Card | None):
         """Replace a card with another of its corresponding tier.
         
         Args:
@@ -72,10 +72,11 @@ class Game(BaseModel):
         try:
             return board.add_new_card(card.tier-1)
         except:
-            print(f"No more tier {card.tier} cards in the deck, could not replace.")
+            if log:
+                print(f"No more tier {card.tier} cards in the deck, could not replace.", end=" ")
             return None
 
-    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]):
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int])  -> None:
         """Perform the 'collect tokens' move.
         
         Args:
@@ -94,7 +95,7 @@ class Game(BaseModel):
         # board collect excess tokens
         board.recieve_tokens(returning)
 
-    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int]):
+    def reserve_card(self, player: Player, board: Board, card: Card, returning: dict[Token, int], log: bool = False) -> None:
         """Perform the 'reserve card' move.
         
         Args:
@@ -110,13 +111,15 @@ class Game(BaseModel):
         player.reserve_card(card)
 
         # board replace card
-        self.replace_card(board, card)
+        new_card =  self.replace_card(board, card, log)
+        if new_card is None and log:
+            print(f"{player.name} tried to reserve a card.")
 
         # collect yellow token. collect_token should cover all the steps for this
         if (board.available_tokens[Token.YELLOW] > 0):
             self.collect_tokens(player, board, {Token.YELLOW: 1}, returning)
 
-    def buy_card(self, player: Player, board: Board, card: Card):
+    def buy_card(self, player: Player, board: Board, card: Card, payment: dict[Token, int], log: bool = False) -> None:
         """Perform the 'buy card' move.
         
         Args:
@@ -125,13 +128,13 @@ class Game(BaseModel):
             card (Card): The card the player is buying
         """
         # calculate effective price of card given players tokens and bonuses
-        real_price = player.calculate_real_price(card)
+        # real_price = player.calculate_real_price(card)
 
         # player remove tokens
-        player.remove_tokens(real_price)
+        player.remove_tokens(payment)
 
         # board collect tokens
-        board.recieve_tokens(real_price)
+        board.recieve_tokens(payment)
 
         # player collect card to hand
         player.collect_card(card)
@@ -140,10 +143,32 @@ class Game(BaseModel):
         if card in player.reserved_cards:
             player.remove_reserved_card(card)
         else:
-            self.replace_card(board, card)
+            new_card = self.replace_card(board, card, log)
+            if new_card is None and log:
+                print(f"{player.name} tried to buy a card.")
+
+    def play_move(self, move: dict, log: bool = False):
+        match move["move_type"]:
+                case "buy_card":
+                    card: Card = move["card"]
+                    self.buy_card(self.current_player, self.board, card, move["payment"], log)
+                case "reserve_card":
+                    card: Card = move["card"]
+                    self.reserve_card(self.current_player, self.board, card, move["returning"], log)
+                case "collect_tokens":
+                    tokens: dict[Token, int] = move["tokens"]
+                    self.collect_tokens(self.current_player, self.board, tokens, move["returning"])
+        # self.next_player()
+        return self
+    
+    def next_player(self):
+        if self.current_player == self.players[0]:
+            self.current_player = self.players[1]
+        else:
+            self.current_player = self.players[0]
 
 
-    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player):
+    def num_tokens_in_play(self, board: Board, player1: Player, player2: Player) -> tuple[dict[Token, int], int]:
         """Debugging method to calculate the number of tokens in the game to make sure it is consistent."""
         num_tokens = 0
         num_tokens += sum(board.available_tokens.values())
