@@ -1,11 +1,11 @@
 import pytest
 from tests.fixtures import test_game_setup as game, test_card_set
-from prbx_project.game import Game
+from prbx_project.gamestate import GameState
 from prbx_project.game_token import Token
 from prbx_project.card import Card
 
 
-def test_game_init(game: Game):
+def test_game_init(game: GameState):
     board = game.board
     assert len(board.available_cards) == 12
     assert board.available_tokens == {Token.RED: 4, Token.BLUE: 4, Token.GREEN: 4,
@@ -14,7 +14,7 @@ def test_game_init(game: Game):
     assert game.max_points == 15
 
 
-def test_is_over(game: Game):
+def test_is_over(game: GameState):
     assert game.is_over() == False
 
     game.current_player.points = 15
@@ -26,7 +26,7 @@ def test_is_over(game: Game):
 
 
 # Still need to implement the logic for the case where 2 people finish on the same turn and have the same number of points
-def test_get_winner(game: Game, test_card_set):
+def test_get_winner(game: GameState, test_card_set: list[Card]):
     # test player 1 more points
     game.players[0].points = 15
     game.players[1].points = 12
@@ -58,7 +58,7 @@ def test_get_winner(game: Game, test_card_set):
     assert game.get_winner() == None
 
 
-def test_replace_card(game: Game):
+def test_replace_card(game: GameState):
     old_card: Card = game.board.available_cards[0]
     assert old_card in game.board.available_cards
 
@@ -76,7 +76,7 @@ def test_replace_card(game: Game):
     assert len(game.board.available_cards) == 11
 
 
-def test_collect_tokens(game: Game):
+def test_collect_tokens(game: GameState):
     assert game.board.available_tokens == {Token.RED: 4, Token.BLUE: 4, Token.GREEN: 4,Token.WHITE: 4, Token.BLACK: 4, Token.YELLOW: 5}
     
     game.collect_tokens(game.players[0], game.board, {Token.RED: 1, Token.BLUE: 1, Token.GREEN: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 0}, returning={})
@@ -90,7 +90,7 @@ def test_collect_tokens(game: Game):
     assert sum(game.board.available_tokens.values()) == 22
 
 
-def test_reserve_card(game: Game):
+def test_reserve_card(game: GameState):
     assert game.players[0].reserved_cards == []
     card = game.board.available_cards[0]
 
@@ -122,12 +122,12 @@ def test_reserve_card(game: Game):
     assert game.board.available_tokens[Token.YELLOW] == 0
 
 
-def test_buy_card(game: Game):
+def test_buy_card(game: GameState):
     assert game.players[0].hand == []
     
     card = game.board.available_cards[0]
     game.players[0].tokens = card.price # set players owned tokens equal to the price of the card
-    game.buy_card(game.players[0], game.board, card)
+    game.buy_card(game.players[0], game.board, card, card.price)
     assert game.players[0].hand == [card]
     assert card not in game.board.available_cards
     assert sum(game.players[0].tokens.values()) == 0 # after purchasing the card, they should have exactly 0 tokens remaining
@@ -139,7 +139,7 @@ def test_buy_card(game: Game):
     card = game.players[0].reserved_cards[0]
     game.players[0].tokens = card.price
     assert card not in game.board.available_cards
-    game.buy_card(game.players[0], game.board, card)
+    game.buy_card(game.players[0], game.board, card, card.price)
     assert card not in game.board.available_cards
     assert card not in game.players[0].reserved_cards
     assert sum(game.players[0].tokens.values()) == 0
