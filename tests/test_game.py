@@ -127,7 +127,7 @@ def test_buy_card(game: GameState):
     
     card = game.board.available_cards[0]
     game.players[0].tokens = card.price # set players owned tokens equal to the price of the card
-    game.buy_card(game.players[0], game.board, card)
+    game.buy_card(game.players[0], game.board, card, card.price)
     assert game.players[0].hand == [card]
     assert card not in game.board.available_cards
     assert sum(game.players[0].tokens.values()) == 0 # after purchasing the card, they should have exactly 0 tokens remaining
@@ -139,7 +139,7 @@ def test_buy_card(game: GameState):
     card = game.players[0].reserved_cards[0]
     game.players[0].tokens = card.price
     assert card not in game.board.available_cards
-    game.buy_card(game.players[0], game.board, card)
+    game.buy_card(game.players[0], game.board, card, card.price)
     assert card not in game.board.available_cards
     assert card not in game.players[0].reserved_cards
     assert sum(game.players[0].tokens.values()) == 0

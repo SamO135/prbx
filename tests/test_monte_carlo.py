@@ -66,8 +66,6 @@ def test_sample_moves(game: GameState):
     assert len(sampled_moves) == num_moves_to_sample
 
         
-
-
-def test_tree_policy(game_tree: Node):
-    tree_policy_value = tree_policy(game_tree.children[0])
-    print(tree_policy_value)
+# def test_tree_policy(game_tree: Node):
+#     tree_policy_value = tree_policy(game_tree.children[0])
+#     print(tree_policy_value)

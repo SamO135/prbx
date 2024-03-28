@@ -67,9 +67,13 @@ def test_get_possible_moves(test_card_set: list[Card]):
     p.tokens = {Token.RED: 1, Token.GREEN: 1, Token.BLUE: 0, Token.WHITE: 2, Token.BLACK: 4, Token.YELLOW: 0}
     possible_moves = p.get_possible_moves(board.available_tokens, test_card_set)
     # possible_moves_answer = {"buy_card": [test_card_set[1], test_card_set[3]], "reserve_card": board.available_cards, "collect_tokens": p.get_token_collection_moves(board.available_tokens)}
+    card1_payment = test_card_set[1].price
+    card3_payment = test_card_set[3].price
+    card1_payment.update({Token.YELLOW: 0})
+    card3_payment.update({Token.YELLOW: 0})
     buy_card_moves = [
-        {"move_type": "buy_card", "card": test_card_set[1]},
-        {"move_type": "buy_card", "card": test_card_set[3]},
+        {"move_type": "buy_card", "card": test_card_set[1], "payment": card1_payment},
+        {"move_type": "buy_card", "card": test_card_set[3], "payment": card3_payment},
         ]
     possible_moves_answer = buy_card_moves + possible_moves_answer
     possible_moves_answer.pop(-1)
