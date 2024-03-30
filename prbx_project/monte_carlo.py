@@ -10,18 +10,24 @@ import yaml
 with open("prbx_project/config.yaml") as file:
         config = yaml.safe_load(file)
 
-def tree_policy(node: Node) -> float:
+def ucb1(node: Node) -> float:
     try:
         return (node.value + 2 * (math.log(node.parent.num_visits) / node.num_visits))
     except Exception as e:
         # print(type(e))
         return 1000
+    
+def uct(node: Node, c: int = 1) -> float:
+    try:
+        return (node.value / node.num_visits) + c * math.sqrt(math.log(node.parent.num_visits) / node.num_visits)
+    except:
+        return 1000
 
 def selection(current_node: Node) -> Node:
     while current_node.children:
-        max_tree_policy_value = tree_policy(current_node.children[0]) - 1
+        max_tree_policy_value = uct(current_node.children[0]) - 1
         for child in current_node.children:
-            tree_policy_value = tree_policy(child)
+            tree_policy_value = uct(child)
             if tree_policy_value > max_tree_policy_value:
                 best_child1 = child
                 max_tree_policy_value = tree_policy_value
@@ -81,8 +87,9 @@ def rollout(current_node: Node, pov: Player) -> Node:
             # Enumerate children for initial node of MCTS
             # if game.current_player.name == "mcts_agent":
             #     current_node = expansion(current_node)
-    current_node.calculate_value(pov)
-    return current_node
+    terminal_node = current_node
+    terminal_node.calculate_value(pov)
+    return terminal_node
 
 def back_propagate(current_node: Node, terminal_value: int) -> Node:
     rollout_node = current_node
@@ -125,9 +132,9 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int):
 
 
     # calculate best child
-    max_tree_policy_value = tree_policy(current_node.children[0]) - 1
+    max_tree_policy_value = uct(current_node.children[0]) - 1
     for child in current_node.children:
-        tree_policy_value = tree_policy(child)
+        tree_policy_value = uct(child)
         if tree_policy_value > max_tree_policy_value:
             best_child2 = child
             max_tree_policy_value = tree_policy_value
@@ -176,7 +183,7 @@ def sample_moves(all_moves: list[dict], k: int, weights: list[int]=[1, 1, 1]) ->
 """
 -- SELECTION --
 while current_node has children
-calculate the next_node using the tree policy (e.g. UCB1)
+calculate the next_node using the tree policy (e.g. UCB1/UCT)
 -- SELECTION --
 
 if next_node has been visited before
