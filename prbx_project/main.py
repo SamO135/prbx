@@ -16,6 +16,8 @@ def play_round(current_node: Node):
                     player_move = current_player.select_random_move(all_moves)
                 case "mcts_vanilla":
                     player_move = select_move_with_mcts(current_node, config["mcts_budget"])
+                case "mcts_rave":
+                    player_move = select_move_with_mcts(current_node, config["mcts_budget"], enhancement="rave")
             current_node.gamestate.current_player.locked = False
         except Exception as e:
             # print(e)
@@ -39,7 +41,7 @@ def play_round(current_node: Node):
         current_node = Node(parent=None, action=player_move, gamestate=current_node.gamestate, children=[], value=0, num_visits=0)
 
         # Enumerate children for initial node of MCTS
-        if current_node.gamestate.current_player.name == "mcts_vanilla":
+        if "mcts" in current_node.gamestate.current_player.name:
             current_node = expansion(current_node, sample_size=config["sample_size"], weights=config["sample_weights"])
     return current_node
 
