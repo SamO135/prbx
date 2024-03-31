@@ -54,8 +54,9 @@ if __name__ == "__main__":
     draws = 0
     avg_num_turns = 0
     discarded_games = 0
-    for i in range(config["simulations"]):
-        print(f"-- Simulation {i+1} --")
+    elapsed_simulations = 1
+    while elapsed_simulations <= config["simulations"]:
+        print(f"-- Simulation {elapsed_simulations} --")
         player1 = Player(name=config["player1_alg"])
         player2 = Player(name=config["player2_alg"])
 
@@ -64,15 +65,14 @@ if __name__ == "__main__":
         # GENERAL GAMEPLAY LOOP
         turn_count = 0
         current_node = Node(parent=None, action={}, gamestate=gamestate, children=[], value=0, num_visits=0) # root node
-        # current_node = expansion(current_node, sample_size=config["sample_size"], weights=config["sample_weights"])
         while (not gamestate.is_over()):
             current_node = play_round(current_node)
             turn_count += 1
-            # print(f"round: {turn_count}")
 
 
         # Game has finished
         if not gamestate.force_end:
+            elapsed_simulations += 1
             winner = gamestate.get_winner()
             avg_num_turns += turn_count
             if winner == None:
