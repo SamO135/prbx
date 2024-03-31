@@ -12,8 +12,8 @@ time_limit: True          # True = mcts_budget is time limit in seconds for sear
 mcts_budget: 0.1          # Search phase budget (based on 'time' setting)
 
 # Rave parameters
-ignore_move_details: True  # True = ignore returned tokens and payments (i.e. only cares if a card if bought, for example, ignoring which combination of tokens was used), False = don't ignore
+ignore_move_details: False  # True = ignore returned tokens and payments (i.e. only cares if a card if bought, for example, ignoring which combination of tokens was used), False = don't ignore
 
 # General simulations settings
 reduced: False            # whether to reduce the payment combinations (i.e. can yellow tokens be used any time (reduced=False), or only when a card cannot be bought without them (reduced=True))
-logs: True
+logs: False

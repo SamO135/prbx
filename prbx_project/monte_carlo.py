@@ -192,12 +192,11 @@ def mcts_rave(current_node: Node, immediate_moves: list[dict]) -> Node:
     return current_node
 
 def select_move_with_mcts(current_node: Node, mcts_budget: int, enhancement: str = None):
-    # if current_node.children == []:
-    immediate_moves = current_node.gamestate.current_player.get_possible_moves(current_node.gamestate.board.available_tokens, current_node.gamestate.board.available_cards, reduced=config["reduced"])
-    if config["ignore_move_details"]:
-        [move.popitem() for move in immediate_moves]
+    immediate_moves = copy.deepcopy([child.action for child in current_node.children])
     if len(immediate_moves) == 0:
         raise ValueError("Cannot select a move from a node with no children")
+    if config["ignore_move_details"]:
+        [move.popitem() for move in immediate_moves]
     current_node = copy.deepcopy(current_node)
     current_node.gamestate.players.reverse()
 
