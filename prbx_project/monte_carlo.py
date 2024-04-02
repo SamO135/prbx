@@ -1,6 +1,7 @@
 from prbx_project.node import Node
 from prbx_project.player import Player
 from datetime import datetime, timedelta
+from prbx_project.stats import Stats
 import copy
 import math
 import random
@@ -25,7 +26,7 @@ def uct(node: Node, c: int = 1) -> float:
 
 def selection(current_node: Node) -> Node:
     while current_node.children:
-        max_tree_policy_value = uct(current_node.children[0]) - 1
+        max_tree_policy_value = uct(current_node.children[0]) - 10
         for child in current_node.children:
             tree_policy_value = uct(child)
             if tree_policy_value > max_tree_policy_value:
@@ -133,7 +134,7 @@ def rollout_rave(current_node: Node, pov: Player, immediate_moves: list[dict]) -
 def back_propagate(current_node: Node, terminal_value: int) -> Node:
     rollout_node = current_node
     while current_node:
-        current_node.value += terminal_value
+        current_node.value = ((current_node.value * current_node.num_visits) + terminal_value) / (current_node.num_visits + 1)
         current_node.num_visits += 1
         current_node = current_node.parent
     return rollout_node
@@ -141,7 +142,7 @@ def back_propagate(current_node: Node, terminal_value: int) -> Node:
 def back_propagate_rave(current_node: Node, terminal_value: int, rave_moves: list[dict]) -> Node:
     rollout_node = current_node
     while current_node.parent:
-        current_node.value += terminal_value
+        current_node.value += ((current_node.value * current_node.num_visits) + terminal_value) / (current_node.num_visits + 1)
         current_node.num_visits += 1
         if current_node.action in rave_moves:
             rave_moves.remove(current_node.action)
@@ -200,17 +201,20 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int, enhancement: str
     current_node = copy.deepcopy(current_node)
     current_node.gamestate.players.reverse()
 
+    stats = Stats()
     if config["time_limit"]:
         start_time = datetime.utcnow()
         while datetime.utcnow() - start_time < timedelta(seconds=mcts_budget):
             current_node = mcts(current_node) if enhancement == None else mcts_rave(current_node, immediate_moves)
+            stats.rollouts += 1
     else:
+        mcts_budget = len(immediate_moves) if mcts_budget < 0 else mcts_budget
         for _ in range(mcts_budget):
             current_node = mcts(current_node) if enhancement == None else mcts_rave(current_node, immediate_moves)
-
+        stats.rollouts += mcts_budget
 
     # calculate best child
-    max_tree_policy_value = uct(current_node.children[0]) - 1
+    max_tree_policy_value = uct(current_node.children[0]) - 10
     for child in current_node.children:
         tree_policy_value = uct(child)
         if tree_policy_value > max_tree_policy_value:

@@ -83,6 +83,7 @@ class Player(BaseModel):
         collection_moves = [{"move_type": "collect_tokens", "tokens": tokens, "returning": returning} for tokens in collectable_tokens for returning in self.get_possible_tokens_to_return(additional_tokens=tokens)]
         
         possible_moves = buy_card_moves + reserve_card_moves + collection_moves
+        random.shuffle(possible_moves)
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe

@@ -3,6 +3,7 @@ from prbx_project.player import Player
 from prbx_project.board import Board
 from prbx_project.node import Node
 from prbx_project.monte_carlo import select_move_with_mcts, expansion
+from prbx_project.stats import Stats
 from collections import Counter
 import yaml
 
@@ -55,7 +56,10 @@ if __name__ == "__main__":
     avg_num_turns = 0
     discarded_games = 0
     elapsed_simulations = 1
+    sum_avg_rollouts = 0
+    stats = Stats()
     while elapsed_simulations <= config["simulations"]:
+        stats.reset_stats()
         print(f"-- Simulation {elapsed_simulations} --")
         player1 = Player(name=config["player1_alg"])
         player2 = Player(name=config["player2_alg"])
@@ -75,12 +79,15 @@ if __name__ == "__main__":
             elapsed_simulations += 1
             winner = gamestate.get_winner()
             avg_num_turns += turn_count
+            avg_rollouts = stats.rollouts/turn_count
+            sum_avg_rollouts += avg_rollouts
             if winner == None:
-                # print(f"Game ended in a draw after {count} turns")
                 draws += 1
             else:
                 winner_list.append(winner.name)
                 print(f"winner: {winner.name}")
+                if config["logs"]:
+                    print(f"average rollouts: {avg_rollouts}")
         else:
             print("discarded game")
             discarded_games += 1
@@ -98,8 +105,11 @@ if len(win_counts) == 1:
 
 for alg, wins in win_counts.items():
     print(f"{alg} won {wins} time{'s' if wins !=1 else ''}")
+if draws > 0:
+    print(f"there were {draws} draws")
 print()
 
 avg_num_turns = avg_num_turns / (config["simulations"] - discarded_games)
 print(f"Average number of turns per simulation: {avg_num_turns}")
+print(f"average rollouts per search phase: {sum_avg_rollouts/config["simulations"]}")
 print(f"Number of discarded games: {discarded_games}")

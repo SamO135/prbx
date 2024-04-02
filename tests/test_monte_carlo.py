@@ -40,9 +40,9 @@ def test_back_propagate(game_tree: Node):
     rollout_node = back_propagate(rollout_node, terminal_value)
     assert rollout_node.value == terminal_value
     assert rollout_node.num_visits == 1
-    assert rollout_node.parent.value == parent_value_old + terminal_value
+    assert rollout_node.parent.value == ((parent_value_old * parent_num_visits_old) + terminal_value) / (parent_num_visits_old + 1)
     assert rollout_node.parent.num_visits == parent_num_visits_old + 1
-    assert rollout_node.parent.parent.value == grandparent_value_old + terminal_value
+    assert rollout_node.parent.parent.value == ((grandparent_value_old * grandparent_num_visits_old) + terminal_value) / (grandparent_num_visits_old + 1)
     assert rollout_node.parent.parent.num_visits ==  grandparent_num_visits_old + 1
     
 def test_rollout(game_tree: Node):
