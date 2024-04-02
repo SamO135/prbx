@@ -6,6 +6,7 @@ from prbx_project.monte_carlo import select_move_with_mcts, expansion
 from prbx_project.stats import Stats
 from collections import Counter
 import yaml
+import cProfile
 
 def play_round(current_node: Node):
     for current_player in current_node.gamestate.players:
@@ -47,10 +48,7 @@ def play_round(current_node: Node):
     return current_node
 
 
-if __name__ == "__main__":
-    with open("prbx_project/config.yaml") as file:
-        config = yaml.safe_load(file)
-
+def main():
     winner_list = []
     draws = 0
     avg_num_turns = 0
@@ -92,24 +90,31 @@ if __name__ == "__main__":
             print("discarded game")
             discarded_games += 1
 
+    # Print statistics
+    print()
+    win_counts = Counter(winner_list)
+    if len(win_counts) == 1:
+        if config["player1_alg"] in win_counts.keys():
+            win_counts[config["player2_alg"]] = 0
+        else:
+            win_counts[config["player1_alg"]] = 0
 
+    for alg, wins in win_counts.items():
+        print(f"{alg} won {wins} time{'s' if wins !=1 else ''}")
+    if draws > 0:
+        print(f"there were {draws} draws")
+    print()
 
-# Print statistics
-print()
-win_counts = Counter(winner_list)
-if len(win_counts) == 1:
-    if config["player1_alg"] in win_counts.keys():
-        win_counts[config["player2_alg"]] = 0
+    avg_num_turns = avg_num_turns / (config["simulations"] - discarded_games)
+    print(f"Average number of turns per simulation: {avg_num_turns}")
+    print(f"average rollouts per search phase: {sum_avg_rollouts/config["simulations"]}")
+    print(f"Number of discarded games: {discarded_games}")
+
+if __name__ == "__main__":
+    with open("prbx_project/config.yaml") as file:
+        config = yaml.safe_load(file)
+
+    if config["profile"]:
+        cProfile.run("main()")
     else:
-        win_counts[config["player1_alg"]] = 0
-
-for alg, wins in win_counts.items():
-    print(f"{alg} won {wins} time{'s' if wins !=1 else ''}")
-if draws > 0:
-    print(f"there were {draws} draws")
-print()
-
-avg_num_turns = avg_num_turns / (config["simulations"] - discarded_games)
-print(f"Average number of turns per simulation: {avg_num_turns}")
-print(f"average rollouts per search phase: {sum_avg_rollouts/config["simulations"]}")
-print(f"Number of discarded games: {discarded_games}")
+        main()

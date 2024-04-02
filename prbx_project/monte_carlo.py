@@ -151,7 +151,9 @@ def back_propagate_rave(current_node: Node, terminal_value: int, rave_moves: lis
     current_node.num_visits += 1
     
     for child in current_node.children:
-        if child.action in rave_moves:
+        if rave_moves == []:
+            break
+        elif child.action in rave_moves:
             # Update scores
             child.value += terminal_value
             child.num_visits += 1

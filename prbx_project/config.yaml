@@ -1,3 +1,6 @@
+# Whether to profile the code or not
+profile: False
+
 # Number of simulations
 simulations: 100
 
