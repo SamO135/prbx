@@ -7,7 +7,7 @@ from prbx_project.player import Player
 
 def test_selection(game_tree: Node):
     selected_node = selection(game_tree)
-    assert selected_node == game_tree.children[2]
+    assert selected_node == game_tree.children[0].children[0]
     assert selected_node.children == []
 
 # Add test for when len(possible_moves) < 10 (i.e. the number of moves to be sampled) - or should this test be done in 'test_sample_moves'?
