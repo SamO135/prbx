@@ -13,14 +13,14 @@ with open("prbx_project/config.yaml") as file:
 
 def ucb1(node: Node) -> float:
     try:
-        return (node.value + 2 * (math.log(node.parent.num_visits) / node.num_visits))
+        return (node.value + 2 * math.sqrt(math.log(node.parent.num_visits) / node.num_visits))
     except Exception as e:
         # print(type(e))
         return 1000
     
 def uct(node: Node, c: int = 1) -> float:
     try:
-        return (node.value / node.num_visits) + c * math.sqrt(math.log(node.parent.num_visits) / node.num_visits)
+        return (node.value + c * math.sqrt(math.log(node.parent.num_visits) / node.num_visits))
     except:
         return 1000
 
