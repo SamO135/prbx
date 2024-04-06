@@ -26,7 +26,8 @@ def uct(node: Node, c: int = 1) -> float:
 
 def selection(current_node: Node) -> Node:
     while current_node.children:
-        max_tree_policy_value = uct(current_node.children[0]) - 10
+        max_tree_policy_value = uct(current_node.children[0])
+        best_child1 = current_node.children[0]
         for child in current_node.children:
             tree_policy_value = uct(child)
             if tree_policy_value > max_tree_policy_value:
@@ -134,7 +135,7 @@ def rollout_rave(current_node: Node, pov: Player, immediate_moves: list[dict]) -
 def back_propagate(current_node: Node, terminal_value: int) -> Node:
     rollout_node = current_node
     while current_node:
-        current_node.value = ((current_node.value * current_node.num_visits) + terminal_value) / (current_node.num_visits + 1)
+        current_node.update_value(terminal_value)
         current_node.num_visits += 1
         current_node = current_node.parent
     return rollout_node
@@ -142,12 +143,12 @@ def back_propagate(current_node: Node, terminal_value: int) -> Node:
 def back_propagate_rave(current_node: Node, terminal_value: int, rave_moves: list[dict]) -> Node:
     rollout_node = current_node
     while current_node.parent:
-        current_node.value += ((current_node.value * current_node.num_visits) + terminal_value) / (current_node.num_visits + 1)
+        current_node.update_value(terminal_value)
         current_node.num_visits += 1
         if current_node.action in rave_moves:
             rave_moves.remove(current_node.action)
         current_node = current_node.parent
-    current_node.value += terminal_value
+    current_node.update_value(terminal_value)
     current_node.num_visits += 1
     
     for child in current_node.children:
@@ -155,7 +156,7 @@ def back_propagate_rave(current_node: Node, terminal_value: int, rave_moves: lis
             break
         elif child.action in rave_moves:
             # Update scores
-            child.value += terminal_value
+            child.update_value(terminal_value)
             child.num_visits += 1
             # Remove action from rave_moves
             rave_moves.remove(child.action)
@@ -216,7 +217,8 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int, enhancement: str
         stats.rollouts[current_node.gamestate.current_player.name] += mcts_budget
 
     # calculate best child
-    max_tree_policy_value = uct(current_node.children[0]) - 10
+    max_tree_policy_value = uct(current_node.children[0])
+    best_child2 = current_node.children[0]
     for child in current_node.children:
         tree_policy_value = uct(child)
         if tree_policy_value > max_tree_policy_value:

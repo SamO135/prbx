@@ -82,6 +82,7 @@ def main():
             sum_avg_rollouts[player2.name] += avg_rollouts[player2.name]
             if winner == None:
                 draws += 1
+                print("draw")
             else:
                 winner_list.append(winner.name)
                 print(f"winner: {winner.name}")

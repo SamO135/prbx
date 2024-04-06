@@ -45,6 +45,29 @@ def test_back_propagate(game_tree: Node):
     assert rollout_node.parent.parent.value == ((grandparent_value_old * grandparent_num_visits_old) + terminal_value) / (grandparent_num_visits_old + 1)
     assert rollout_node.parent.parent.num_visits ==  grandparent_num_visits_old + 1
     
+def test_back_propagate_rave(game_tree: Node):
+    rollout_node = game_tree.children[0].children[0]
+    rollout_node.value = 0
+    rollout_node.num_visits = 0
+    terminal_value = 12
+    action1 = {"move_type": "collect_tokens", "tokens": {Token.RED: 1, Token.GREEN: 1, Token.BLUE: 1}, "returning": {}}
+    action2 = {"move_type": "collect_tokens", "tokens": {Token.RED: 1, Token.GREEN: 1, Token.BLACK: 1}, "returning": {}}
+    action3 = {"move_type": "collect_tokens", "tokens": {Token.RED: 1, Token.GREEN: 1, Token.WHITE: 1}, "returning": {}}
+    game_tree.children[0].action = action1
+    game_tree.children[1].action = action2
+    rollout_node.action = action3
+    rave_moves = [action1, action2, action3]
+    print(rollout_node.parent.value)
+    rollout_node = back_propagate_rave(rollout_node, terminal_value, rave_moves)
+    assert rollout_node.value == terminal_value
+    assert rollout_node.num_visits == 1
+    assert rollout_node.parent.value == 26/3
+    assert rollout_node.parent.num_visits == 3
+    assert rollout_node.parent.parent.value == 21.6
+    assert rollout_node.parent.parent.num_visits == 5
+    assert rollout_node.parent.parent.children[1].value == 7
+    assert rollout_node.parent.parent.children[1].num_visits == 2
+
 def test_rollout(game_tree: Node):
     rollout_node = selection(game_tree)
     rollout_node_copy = copy.deepcopy(rollout_node)

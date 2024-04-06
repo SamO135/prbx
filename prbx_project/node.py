@@ -18,4 +18,7 @@ class Node(BaseModel):
                 self.value +=  player.points
             # else:
             #     self.value -= player.points
+                
+    def update_value(self, terminal_value: int) -> None:
+        self.value = ((self.value * self.num_visits) + terminal_value) / (self.num_visits + 1)
             
