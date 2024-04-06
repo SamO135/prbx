@@ -4,13 +4,16 @@ class Stats:
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super().__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        if not hasattr(self, "algs"):
+            self.algs = kwargs.get("algs")
         if not hasattr(self, 'rollouts'):
-            self.rollouts = 0
+            self.rollouts = {self.algs[0]: 0, self.algs[1]: 0}
 
     def reset_stats(self):
         for attr in vars(self):
-            setattr(self, attr, 0)
+            if attr == "rollouts":
+                setattr(self, attr, {self.algs[0]: 0, self.algs[1]: 0})

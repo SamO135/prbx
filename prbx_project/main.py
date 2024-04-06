@@ -54,8 +54,8 @@ def main():
     avg_num_turns = 0
     discarded_games = 0
     elapsed_simulations = 1
-    sum_avg_rollouts = 0
-    stats = Stats()
+    sum_avg_rollouts = {config["player1_alg"]: 0, config["player2_alg"]: 0}
+    stats = Stats(algs=[config["player1_alg"], config["player2_alg"]])
     while elapsed_simulations <= config["simulations"]:
         stats.reset_stats()
         print(f"-- Simulation {elapsed_simulations} --")
@@ -77,8 +77,9 @@ def main():
             elapsed_simulations += 1
             winner = gamestate.get_winner()
             avg_num_turns += turn_count
-            avg_rollouts = stats.rollouts/turn_count
-            sum_avg_rollouts += avg_rollouts
+            avg_rollouts = {player1.name: stats.rollouts[player1.name]/turn_count, player2.name: stats.rollouts[player2.name]/turn_count}
+            sum_avg_rollouts[player1.name] += avg_rollouts[player1.name]
+            sum_avg_rollouts[player2.name] += avg_rollouts[player2.name]
             if winner == None:
                 draws += 1
             else:
@@ -107,7 +108,8 @@ def main():
 
     avg_num_turns = avg_num_turns / (config["simulations"] - discarded_games)
     print(f"Average number of turns per simulation: {avg_num_turns}")
-    print(f"average rollouts per search phase: {sum_avg_rollouts/config["simulations"]}")
+    print(f"average rollouts per search phase ({player1.name}): {sum_avg_rollouts[player1.name]/config["simulations"]}")
+    print(f"average rollouts per search phase ({player2.name}): {sum_avg_rollouts[player2.name]/config["simulations"]}")
     print(f"Number of discarded games: {discarded_games}")
 
 if __name__ == "__main__":

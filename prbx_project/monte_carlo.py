@@ -208,12 +208,12 @@ def select_move_with_mcts(current_node: Node, mcts_budget: int, enhancement: str
         start_time = datetime.utcnow()
         while datetime.utcnow() - start_time < timedelta(seconds=mcts_budget):
             current_node = mcts(current_node) if enhancement == None else mcts_rave(current_node, immediate_moves)
-            stats.rollouts += 1
+            stats.rollouts[current_node.gamestate.current_player.name] += 1
     else:
         mcts_budget = len(immediate_moves) if mcts_budget < 0 else mcts_budget
         for _ in range(mcts_budget):
             current_node = mcts(current_node) if enhancement == None else mcts_rave(current_node, immediate_moves)
-        stats.rollouts += mcts_budget
+        stats.rollouts[current_node.gamestate.current_player.name] += mcts_budget
 
     # calculate best child
     max_tree_policy_value = uct(current_node.children[0]) - 10
