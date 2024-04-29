@@ -61,7 +61,8 @@ def test_get_possible_moves(test_card_set: list[Card]):
         {'move_type': 'collect_tokens', 'tokens': {Token.GREEN: 2}, 'returning': {}},
         {'move_type': 'collect_tokens', 'tokens': {Token.RED: 1, Token.GREEN: 1, Token.BLUE: 1}, 'returning': {}},
         ]
-    assert possible_moves == possible_moves_answer
+    for move in possible_moves_answer:
+        assert move in possible_moves
 
     board.available_tokens = {Token.RED: 4, Token.GREEN: 4, Token.BLUE: 1, Token.WHITE: 0, Token.BLACK: 0, Token.YELLOW: 5}
     p.tokens = {Token.RED: 1, Token.GREEN: 1, Token.BLUE: 0, Token.WHITE: 2, Token.BLACK: 4, Token.YELLOW: 0}

@@ -15,9 +15,10 @@ class Node(BaseModel):
         self.value = 0
         for player in self.gamestate.players:
             if player.name == pov.name:
-                self.value +=  (player.points * 5)
-                self.value += sum(player.tokens.values())
-            else:
-                self.value -= (player.points * 5)
-                self.value -= sum(player.tokens.values())
+                self.value +=  player.points
+            # else:
+            #     self.value -= player.points
+                
+    def update_value(self, terminal_value: int) -> None:
+        self.value = ((self.value * self.num_visits) + terminal_value) / (self.num_visits + 1)
             
