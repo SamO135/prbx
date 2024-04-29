@@ -1,3 +1,6 @@
+# References:
+# list of cards csv - https://github.com/bouk/splendimax/blob/master/Splendor%20Cards.csv
+
 from prbx_project.gamestate import GameState
 from prbx_project.player import Player
 from prbx_project.board import Board
