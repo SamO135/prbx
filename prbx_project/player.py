@@ -27,13 +27,7 @@ class Player(BaseModel):
         Returns:
             list[Card]: A list of Card objects that the player is able to buy
         """
-        buyable_cards = []
-        for card in cards:
-            real_price = self.calculate_real_price(card)
-            # From the result of calculate_real_price, the only way the player can buy the card is if they have enough 
-            # yellow tokens, so this is all I need to check for
-            if self.tokens[Token.YELLOW] >= real_price[Token.YELLOW]:
-                buyable_cards.append(card)
+        buyable_cards = [card for card in cards if self.tokens[Token.YELLOW] >= self.calculate_real_price(card)[Token.YELLOW]]
         return buyable_cards
     
     def get_token_collection_moves(self, available_tokens: dict[Token, int]) -> list[dict[Token, int]]:
@@ -67,10 +61,10 @@ class Player(BaseModel):
             A list of all the possible moves the player can make on their turn
         """
         buyable_cards = self.get_buyable_cards(available_cards) + self.get_buyable_cards(self.reserved_cards)
-        # buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": tokens} for card in buyable_cards for tokens in ]
-        buy_card_moves = [{"move_type": "buy_card", "card": card, "payment": self.calculate_real_price(card)} for card in buyable_cards]
+        card_real_price_cache = [self.calculate_real_price(card) for card in buyable_cards]
+        buy_card_moves = [{"move_type": "buy_card", "card": buyable_cards[i], "payment": real_price} for i, real_price in enumerate(card_real_price_cache)]
         if not reduced:
-            buy_card_moves += [{"move_type": "buy_card", "card": card, "payment": payment} for card in buyable_cards for payment in self.get_payment_combinations(self.calculate_real_price(card), self.tokens[Token.YELLOW]-self.calculate_real_price(card)[Token.YELLOW])]
+            buy_card_moves += [{"move_type": "buy_card", "card": buyable_cards[i], "payment": payment} for i, real_price in enumerate(card_real_price_cache) for payment in self.get_payment_combinations(real_price, self.tokens[Token.YELLOW]-real_price[Token.YELLOW])]
         unique_moves = []
         [unique_moves.append(move) for move in buy_card_moves if move not in unique_moves]
         buy_card_moves = unique_moves
@@ -83,6 +77,7 @@ class Player(BaseModel):
         collection_moves = [{"move_type": "collect_tokens", "tokens": tokens, "returning": returning} for tokens in collectable_tokens for returning in self.get_possible_tokens_to_return(additional_tokens=tokens)]
         
         possible_moves = buy_card_moves + reserve_card_moves + collection_moves
+        random.shuffle(possible_moves)
         return possible_moves
 
     # This is where the monte carlo stuff would go maybe
@@ -190,9 +185,7 @@ class Player(BaseModel):
             dict[Token, int]: The effective price of the card for the player
         """
         # calculate price given player's bonuses
-        real_price = copy.deepcopy(card.price)
-        for token, price in card.price.items():
-            real_price[token] = max((real_price[token] - self.bonuses[token]), 0)
+        real_price = {token: max((card.price[token] - self.bonuses[token]), 0) for token, price in card.price.items()}
         
         # calculate the number of yellow tokens needed to buy the card
         num_yellows_needed = 0

@@ -76,7 +76,7 @@ class GameState(BaseModel):
                 print(f"No more tier {card.tier} cards in the deck, could not replace.", end=" ")
             return None
 
-    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int])  -> None:
+    def collect_tokens(self, player: Player, board: Board, tokens: dict[Token, int], returning: dict[Token, int]) -> None:
         """Perform the 'collect tokens' move.
         
         Args:
