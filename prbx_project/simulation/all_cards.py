@@ -1,10 +1,10 @@
-from prbx_project.card import Card
-from prbx_project.game_token import Token
+from prbx_project.simulation.card import Card
+from prbx_project.simulation.game_token import Token
 
-with open("prbx_project/splendor_cards.csv", "r") as file:
+with open("prbx_project/simulation/splendor_cards.csv", "r") as file:
     all_cards = [[], [], []]
     line = file.readline()
-    line  = file.readline()
+    line = file.readline()
     while line:
         card_data = line.split(",")
         for i in range(len(card_data)):
@@ -31,9 +31,9 @@ with open("prbx_project/splendor_cards.csv", "r") as file:
                 Token.BLUE: card_data[4],
                 Token.WHITE: card_data[7],
                 Token.BLACK: card_data[3],
-                Token.YELLOW: 0
-                },
+                Token.YELLOW: 0,
+            },
             tier=card_data[0],
-            )
-        all_cards[card.tier-1].append(card)
-        line = file.readline()     
+        )
+        all_cards[card.tier - 1].append(card)
+        line = file.readline()
